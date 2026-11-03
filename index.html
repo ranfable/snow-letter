@@ -6,7 +6,7 @@
 <title>雪笺 Snow Letter</title>
 <meta name="claude:viewport-fit-sides" content="cover" />
 <style>
-:root{--ink:#26374c;--mute:#718094;--line:#e0e6ef;--page:#f4f7fa;--panel:#fff;--accent:#476c96;--r:19px}
+:root{--ink:#26374c;--mute:#718094;--line:#e0e6ef;--page:#f4f7fa;--panel:#fff;--accent:#476c96;--r:19px;--stage-max-h:78vh}
 *{box-sizing:border-box}body{margin:0;background:var(--page);font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--ink);-webkit-font-smoothing:antialiased}
 button,textarea,input,select{font:inherit}button{cursor:pointer}button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid #b3cae9;outline-offset:2px}
 .site{max-width:1580px;margin:auto;padding-block:25px 38px;padding-left:max(16px,min(3vw,50px),env(safe-area-inset-left,0px));padding-right:max(16px,min(3vw,50px),env(safe-area-inset-right,0px))}
@@ -16,13 +16,13 @@ h1{font:500 27px/1.1 Georgia,"Songti SC",serif;letter-spacing:1.5px;margin:0}.su
 .topactions{display:flex;align-items:center;gap:8px}.btn{white-space:nowrap;border:1px solid #dce5ed;border-radius:11px;padding:10px 14px;background:white;color:#52647a;display:inline-flex;align-items:center;gap:6px;justify-content:center;transition:.15s}.btn:hover{background:#f1f6fa;border-color:#c5d7e5}.btn.primary{background:#425f7f;border-color:#425f7f;color:#fff}.btn.primary:hover{background:#314f72}.btn.small{padding:7px 10px;font-size:12px}.btn:disabled{opacity:.45;cursor:default;background:white;border-color:#dce5ed}
 .workspace{display:grid;grid-template-columns:minmax(0,1fr) 336px;gap:20px;align-items:start}.stage-column{min-width:0}
 .canvas-card{border-radius:20px;overflow:hidden;background:#eff4f4;box-shadow:0 15px 45px #647b9522;position:relative;border:1px solid #d1dce7}
-#snowCanvas{display:block;width:100%;height:auto;touch-action:none;cursor:grab}#snowCanvas:active{cursor:grabbing}
+#snowCanvas{display:block;width:100%;height:auto;touch-action:none;cursor:grab}#snowCanvas:active{cursor:grabbing}#snowCanvas.drawing{cursor:crosshair}
 .stage-tools{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}.btn.armed,.btn.armed:hover{background:#fbeeec;border-color:#d9a79f;color:#a8524a}.crop-toggle.active,.crop-toggle.active:hover{background:#425f7f;border-color:#425f7f;color:#fff}.canvas-card.cropped .stage-chip,.canvas-card.cropped .stage-corner{display:none}
 .view-switch{display:flex;gap:2px;padding:3px;border-radius:50px;background:#e9eff5}.view-switch button{border:0;background:transparent;border-radius:50px;padding:6px 12px;font-size:12px;color:#4e6481}.view-switch button.active{background:#425f7f;color:#fff}
 .stage-chip{position:absolute;top:18px;left:18px;padding:7px 11px;border-radius:50px;background:#ffffffcb;backdrop-filter:blur(12px);font:14px/1.2 Georgia,"Songti SC","STSong","Noto Serif CJK SC",serif;color:#4e6481;pointer-events:none;letter-spacing:.22em}
 .stage-corner{position:absolute;bottom:18px;right:19px;color:#3f5570;text-shadow:0 1px 1px #ffffff80;font:15px Georgia,"Songti SC",serif;letter-spacing:.08em;pointer-events:none}.stage-corner.on-dark{color:#fffffff0;text-shadow:0 1px 3px #1f3550a0}
 .stage-info{display:flex;justify-content:space-between;align-items:center;padding:13px 3px;gap:10px;font-size:12px;color:#8492a4;line-height:1.6}.stage-info span:last-child{white-space:nowrap}
-.panel{background:var(--panel);border-radius:20px;border:1px solid #e5eaf0;box-shadow:0 8px 25px #778ba514;overflow:hidden}.tabs{display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid var(--line);padding:8px 11px 0;gap:3px}.tab{background:transparent;color:#8b97a7;border:0;padding:13px 2px 14px;font-size:13px;position:relative;white-space:nowrap}.tab.active{color:#344d6b;font-weight:600}.tab.active:after{content:"";height:2px;background:#577ca8;position:absolute;bottom:0;left:15%;right:15%;border-radius:5px}
+.panel{background:var(--panel);border-radius:20px;border:1px solid #e5eaf0;box-shadow:0 8px 25px #778ba514;overflow:hidden}.tabs{display:grid;grid-template-columns:repeat(5,1fr);border-bottom:1px solid var(--line);padding:8px 11px 0;gap:3px}.tab{background:transparent;color:#8b97a7;border:0;padding:13px 2px 14px;font-size:13px;position:relative;white-space:nowrap}.tab.active{color:#344d6b;font-weight:600}.tab.active:after{content:"";height:2px;background:#577ca8;position:absolute;bottom:0;left:15%;right:15%;border-radius:5px}
 .tab-panel{padding:22px;display:none}.tab-panel.active{display:block}.section-label{font-size:12px;color:#748397;margin-bottom:9px;font-weight:550;display:flex;justify-content:space-between;align-items:center}.section-head{font-size:14px;font-weight:600;margin-bottom:15px;color:#425670}
 textarea{background:#f8fafc;border:1px solid #e0e7ef;border-radius:12px;width:100%;padding:13px 14px;resize:vertical;min-height:108px;line-height:1.7;color:#2b4056;font-size:16px;outline:none}textarea:focus{border-color:#9db6d1;background:#fff}textarea:disabled{opacity:.5}
 .field{margin-top:17px}.field select{width:100%;padding:10px;background:#f9fbfd;border:1px solid #e2e8ef;border-radius:10px;color:#43556b}
@@ -31,12 +31,37 @@ textarea{background:#f8fafc;border:1px solid #e0e7ef;border-radius:12px;width:10
 .material-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}.material{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-height:75px;border-radius:12px;background:#f7f9fc;border:1px solid #e7edf3;color:#697d95;transition:.15s}.material:hover{background:#eaf2f8;border-color:#bccfdf;transform:translateY(-1px)}canvas.icon{width:30px;height:30px}.material .icon{font-family:Georgia,"PingFang SC",serif;font-size:27px;line-height:1}.material span:last-child{font-size:10px}
 .swatch-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.swatch{height:86px;border-radius:13px;border:2px solid transparent;display:flex;align-items:end;justify-content:center;padding:9px;font-size:11px;box-shadow:inset 0 0 14px #fff5;color:#354d67}.swatch.active{outline:2px solid #6086ae;outline-offset:2px}.swatch[data-bg=blue]{background:linear-gradient(145deg,#bed0e0,#e5edf2 58%,#c3d4e1)}.swatch[data-bg=gold]{background:linear-gradient(145deg,#e6dfd4,#faf1de 58%,#d8d7d3)}.swatch[data-bg=dusk]{background:linear-gradient(145deg,#859db6,#d7e1eb 58%,#9db2c7)}
 .filebutton{position:relative;overflow:hidden}.filebutton input{position:absolute;inset:0;opacity:0;width:100%;cursor:pointer}
-.preset{display:flex;gap:7px;margin-top:10px}.preset button{border:1px solid #e2e9f0;background:#f8fafb;border-radius:9px;padding:8px 10px;color:#63778c;font-size:11px;flex:1}.preset button.active{background:#e8f1f7;border-color:#a9bfd4;color:#496b8d}
+.preset{display:flex;gap:7px;margin-top:10px}.section-label+.preset{margin-top:0}.preset button{border:1px solid #e2e9f0;background:#f8fafb;border-radius:9px;padding:8px 10px;color:#63778c;font-size:11px;flex:1}.preset button.active{background:#e8f1f7;border-color:#a9bfd4;color:#496b8d}
 .hint{background:#f2f6fa;border:1px solid #e4edf4;padding:14px;border-radius:12px;color:#71849a;font-size:12px;line-height:1.8}
 .foot{display:flex;align-items:center;justify-content:space-between;margin-top:22px;color:#9ba8b6;font-size:11px;gap:14px}.foot em{font-family:Georgia,serif;font-weight:normal;font-size:15px;color:#899aab}
-.mobile-save{display:none}
+.phone-only{display:none}
 @media(max-width:1060px){.workspace{grid-template-columns:minmax(0,1fr) 300px;gap:13px}.tab-panel{padding:16px}}
-@media(max-width:780px){.site{padding-block:15px 35px}header{margin-bottom:16px;flex-wrap:wrap}.topactions{width:100%}.topactions .btn{flex:1}.stage-tools{flex-wrap:wrap}.foot{flex-wrap:wrap}.brandmark{width:37px;height:37px}h1{font-size:24px}.sub{font-size:10px}.desktop-only{display:none}.workspace{display:flex;flex-direction:column}.stage-column,.panel{width:100%}.panel{order:2}.canvas-card{border-radius:14px}.stage-info{font-size:10px}.stage-chip{font-size:11px;top:11px;left:11px}.view-switch button{padding:4px 9px;font-size:11px}.stage-corner{font-size:12px;right:10px;bottom:10px}.tab-panel{padding:16px 19px}.tab{padding:12px 3px}.mobile-save{display:inline-flex}.material-grid{grid-template-columns:repeat(4,1fr)}.foot{margin-top:15px}}
+@media(min-width:781px){.stage-column{position:sticky;top:14px}}
+/* On a phone the page itself never scrolls: the canvas stays put and only the controls under it move. */
+@media(max-width:780px){
+:root{--stage-max-h:calc(var(--app-h,100vh)*.5)}:root.typing{--stage-max-h:calc(var(--app-h,100vh)*.52)}
+html,body{height:100%;overflow:hidden;overscroll-behavior:none}
+.site{height:var(--app-h,100vh);display:flex;flex-direction:column;padding-block:max(8px,env(safe-area-inset-top,0px)) 0}
+header{flex:none;margin-bottom:8px;gap:8px}.brand{gap:8px}.brandmark{width:30px;height:30px;border-radius:10px;font-size:17px}h1{font-size:20px;letter-spacing:1px;white-space:nowrap}h1 small,.sub{display:none}
+.topactions{gap:6px}.topactions .btn{padding:6px 10px;font-size:12px;border-radius:9px}
+.workspace{flex:1;min-height:0;display:flex;flex-direction:column;gap:8px}
+.stage-column{flex:none;width:100%;position:relative}.stage-tools{margin-bottom:8px}.view-switch button{padding:4px 11px;font-size:12px}
+.canvas-card{width:min(100%,calc(var(--stage-max-h)*960/688));margin-inline:auto;border-radius:14px}
+.stage-chip{font-size:11px;top:8px;left:8px;padding:5px 9px}.stage-corner{font-size:12px;right:10px;bottom:8px}
+.stage-info{display:none}.stage-info.telling{display:block;position:absolute;left:8px;right:8px;bottom:8px;z-index:6;padding:7px 11px;border-radius:10px;background:#26374ce6;color:#fff;font-size:12px;text-align:center;pointer-events:none}.stage-info.telling #sizeInfo{display:none}
+.panel{flex:1;min-height:0;width:100%;display:flex;flex-direction:column;border-radius:16px 16px 0 0;border-bottom:0}
+.tabs{flex:none;padding:2px 8px 0}.tab{padding:10px 2px 11px}
+.tab-panel{padding:14px 16px calc(22px + env(safe-area-inset-bottom,0px))}.tab-panel.active{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+.section-head,.foot{display:none}.phone-only{display:inline}
+textarea{min-height:72px}.hint{padding:9px 12px;line-height:1.6}.field{margin-top:12px}.divider{margin:15px 0}.swatch{height:64px}.material{min-height:66px}
+input[type=range]{height:26px;margin:2px 0}
+.typing .site{padding-top:6px}.typing header,.typing .stage-tools,.typing .tabs{display:none}
+}
+@media(max-width:780px) and (orientation:landscape){
+:root:not(.typing){--stage-max-h:calc(var(--app-h,100vh) - 100px)}
+:root:not(.typing) .workspace{flex-direction:row;gap:10px;align-items:stretch}:root:not(.typing) .stage-column{width:calc(var(--stage-max-h)*960/688);max-width:52%;align-self:start}:root:not(.typing) .canvas-card{width:100%}
+:root:not(.typing) .panel{min-width:0;border-radius:16px;margin-bottom:8px;border-bottom:1px solid #e5eaf0}
+}
 </style>
 </head>
 <body>
@@ -52,7 +77,7 @@ textarea{background:#f8fafc;border:1px solid #e0e7ef;border-radius:12px;width:10
   <div class="stage-info"><span id="stageHint" role="status">拖动文字或图案调整位置 · 点击选中后可旋转、缩放、删除</span><span id="sizeInfo">960 × 688 px</span></div>
  </div>
  <aside class="panel">
-  <div class="tabs"><button class="tab active" data-tab="word">文字</button><button class="tab" data-tab="material">素材</button><button class="tab" data-tab="scene">雪景</button><button class="tab" data-tab="adjust">调整</button></div>
+  <div class="tabs"><button class="tab active" data-tab="word">文字</button><button class="tab" data-tab="draw">手绘</button><button class="tab" data-tab="material">素材</button><button class="tab" data-tab="scene">雪景</button><button class="tab" data-tab="adjust">调整</button></div>
   <section class="tab-panel active" data-panel="word">
     <div class="section-head">把想说的话，留在雪里。</div>
     <label class="section-label" for="wordInput">输入文字 <span style="font-weight:400;color:#a3aeb9">支持中英文 · 回车换行</span></label>
@@ -61,6 +86,13 @@ textarea{background:#f8fafc;border:1px solid #e0e7ef;border-radius:12px;width:10
     <div class="field"><div class="range-line"><label class="section-label" for="fontSize">文字大小</label><output id="fontSizeOut">126</output></div><input id="fontSize" type="range" min="24" max="200" value="126" /></div>
     <div class="twobtn"><button class="btn primary" id="addTextBtn">＋ 添加一行文字</button><button class="btn" id="deleteBtn">删除选中</button></div>
     <div class="note">小提示：首次点画布选中素材，再拖动位置；素材不会合并成一张图。<br>选中素材后，也能在「调整」里修改大小和角度。</div>
+  </section>
+  <section class="tab-panel" data-panel="draw">
+    <div class="section-head">不用打字，直接写在雪上。</div>
+    <div class="section-label">笔画粗细</div>
+    <div class="preset"><button data-weight="11">细</button><button class="active" data-weight="16">简约清晰</button><button data-weight="23">粗</button></div>
+    <div class="twobtn"><button class="btn" id="undoStroke">撤销一笔</button><button class="btn" id="clearDrawing">清除手绘</button></div>
+    <div class="note">在这个标签下，手指落在画布上就是一笔，三个角度都能写。整幅手绘算一个素材，切到别的标签后可以整体拖动、缩放和旋转。回到这里会接着写同一幅；想另起一幅，先点空白处取消选中。</div>
   </section>
   <section class="tab-panel" data-panel="material">
     <div class="section-head">给雪地加一点小心思 ✳</div>
@@ -94,7 +126,7 @@ textarea{background:#f8fafc;border:1px solid #e0e7ef;border-radius:12px;width:10
     <div class="divider"></div>
     <div class="section-label">添加你自己的素材</div>
     <label class="btn filebutton" style="width:100%;display:flex">＋ &nbsp;上传图片贴纸 <input type="file" id="stickerUpload" accept="image/*"></label>
-    <div class="note">可上传 PNG、JPG、WebP。透明背景的 PNG 贴纸效果更好；自定义贴纸可以自由移动、缩放与旋转；目前图片不会自动转为雪面压印。</div>
+    <div class="note">可上传 PNG、JPG、WebP。透明背景的 PNG 贴纸效果更好；自定义贴纸可以自由移动、缩放与旋转；目前图片不会自动转为雪面压印。<span class="phone-only">图片只在这台设备上处理，不会上传。</span></div>
   </section>
   <section class="tab-panel" data-panel="scene">
     <div class="section-head">选择你想要的那场雪。</div>
@@ -102,18 +134,17 @@ textarea{background:#f8fafc;border:1px solid #e0e7ef;border-radius:12px;width:10
     <div class="swatch-grid"><button class="swatch active" data-bg="blue">蓝调晨雪</button><button class="swatch" data-bg="gold">暖阳粉雪</button><button class="swatch" data-bg="dusk">冷调薄暮</button></div>
     <div class="divider"></div>
     <label class="btn filebutton" style="width:100%;display:flex">▧ &nbsp;上传自己的雪地照片 <input type="file" id="bgUpload" accept="image/*"></label>
-    <div class="note">照片将铺满画布；所有文字和素材仍可编辑。切换回上面的光线可恢复生成的雪地背景。</div>
+    <div class="note">照片将铺满画布；所有文字和素材仍可编辑。切换回上面的光线可恢复生成的雪地背景。<span class="phone-only">图片只在这台设备上处理，不会上传。</span></div>
   </section>
   <section class="tab-panel" data-panel="adjust">
-    <div class="section-head">让每个细节都恰到好处。</div>
+    <div class="section-label">字体颜色</div>
+    <div class="preset"><button class="active" data-floor="blue">冷蓝雪影</button><button data-floor="brown">深褐泥土</button></div>
+    <div class="section-label" style="margin-top:17px">划痕深浅</div>
+    <div class="preset"><button data-depth="light">轻痕</button><button class="active" data-depth="normal">指尖划雪</button><button data-depth="deep">深痕</button></div>
+    <div class="divider"></div>
     <div class="hint" id="selectedHint">点击画布中的文字或图案，开始调整。</div>
     <div class="field"><div class="range-line"><label class="section-label" for="scaleRange">缩放</label><output id="scaleOut">100%</output></div><input type="range" id="scaleRange" min="20" max="250" value="100" /></div>
     <div class="field"><div class="range-line"><label class="section-label" for="rotateRange">旋转</label><output id="rotateOut">0°</output></div><input type="range" id="rotateRange" min="-180" max="180" value="0" /></div>
-    <div class="divider"></div>
-    <div class="section-label">划痕深浅</div>
-    <div class="preset"><button data-depth="light">轻痕</button><button class="active" data-depth="normal">指尖划雪</button><button data-depth="deep">深痕</button></div>
-    <div class="section-label" style="margin-top:17px">字底颜色</div>
-    <div class="preset"><button class="active" data-floor="blue">冷蓝雪影</button><button data-floor="brown">深褐泥土</button></div>
     <div class="field"><div class="range-line"><label class="section-label" for="recessRange">凹槽深浅</label><output id="recessOut">140%</output></div><input type="range" id="recessRange" min="50" max="180" value="140" /></div>
     <div class="field"><div class="range-line"><label class="section-label" for="powderRange">雪面颗粒感</label><output id="powderOut">65%</output></div><input type="range" id="powderRange" min="15" max="130" value="65" /></div>
     <div class="field"><div class="range-line"><label class="section-label" for="pileRange">蓬松积雪厚度</label><output id="pileOut">155%</output></div><input type="range" id="pileRange" min="0" max="250" value="155" /></div>
@@ -131,7 +162,7 @@ textarea{background:#f8fafc;border:1px solid #e0e7ef;border-radius:12px;width:10
  const $=id=>document.getElementById(id);
  const fonts={soft:'"Bradley Hand","Comic Neue","Kaiti SC","STKaiti","KaiTi","AR PL KaitiM GB",cursive',serif:'"Songti SC","STSong","Noto Serif CJK SC",serif',classic:'Arial,"PingFang SC",sans-serif'};
  const items=[{id:1,type:'text',text:'想见你',x:480,y:333,size:126,scale:1,rotation:0,font:'soft'},{id:2,type:'stamp',kind:'snow',x:764,y:170,size:83,scale:1,rotation:.14},{id:3,type:'stamp',kind:'heart',x:264,y:486,size:97,scale:1,rotation:-.12},{id:4,type:'stamp',kind:'sparkle',x:716,y:531,size:78,scale:1,rotation:.12}];
- let selected=1,hasInteracted=false,ids=5,background='blue',backgroundImage=null,depth='normal',floorTone='blue',pointerState=null,snowLayer=null,snowPixels=null;
+ let selected=1,hasInteracted=false,ids=5,background='blue',backgroundImage=null,depth='normal',floorTone='blue',pointerState=null,snowLayer=null,snowPixels=null,drawMode=false,drawWeight=16;
  const alpha={light:.49,normal:.7,deep:.91};
  const clamp=(n,min,max)=>Math.max(min,Math.min(max,n));
  const liftToward=(base,amount,top)=>{const room=top-base;return room>0?base+room*(1-Math.exp(-amount/room)):base};
@@ -218,7 +249,24 @@ textarea{background:#f8fafc;border:1px solid #e0e7ef;border-radius:12px;width:10
   else if(kind==='grass'){c.moveTo(0,36);c.quadraticCurveTo(-4,0,-30,-18);c.moveTo(0,36);c.lineTo(0,-34);c.moveTo(0,36);c.quadraticCurveTo(6,0,30,-18)}
   else if(kind==='cat'){c.moveTo(-41,-13);c.lineTo(-41,-51);c.lineTo(-15,-32);c.quadraticCurveTo(0,-36,15,-32);c.lineTo(41,-51);c.lineTo(41,-13);c.bezierCurveTo(59,41,28,50,0,48);c.bezierCurveTo(-43,50,-57,24,-41,-13);c.moveTo(-26,0);c.lineTo(-23,1);c.moveTo(23,1);c.lineTo(26,0);c.moveTo(-5,17);c.lineTo(0,21);c.lineTo(5,17);c.moveTo(0,21);c.quadraticCurveTo(-8,31,-15,21);c.moveTo(0,21);c.quadraticCurveTo(9,31,16,21);c.moveTo(-22,23);c.lineTo(-51,17);c.moveTo(-22,30);c.lineTo(-49,33);c.moveTo(21,23);c.lineTo(51,17);c.moveTo(22,30);c.lineTo(49,33)}
  }
+ // A stroke runs through the midpoints between samples, so a slow, shaky finger still leaves a clean curve.
+ function traceStroke(c,pts){
+  c.beginPath();c.moveTo(pts[0][0],pts[0][1]);
+  if(pts.length===1){c.lineTo(pts[0][0]+.01,pts[0][1]);return}
+  for(let k=1;k<pts.length-1;k++)c.quadraticCurveTo(pts[k][0],pts[k][1],(pts[k][0]+pts[k+1][0])/2,(pts[k][1]+pts[k+1][1])/2);
+  c.lineTo(pts[pts.length-1][0],pts[pts.length-1][1]);
+ }
+ const drawingToWorld=(item,lx,ly)=>{const co=Math.cos(item.rotation),si=Math.sin(item.rotation);return {x:item.x+(lx*co-ly*si)*item.scale,y:item.y+(lx*si+ly*co)*item.scale}};
+ // Recentres a drawing on its ink so its handles and hit area sit around what was drawn.
+ function fitDrawing(item){
+  let x0=Infinity,y0=Infinity,x1=-Infinity,y1=-Infinity,pad=0;
+  for(const s of item.strokes){if(s.w>pad)pad=s.w;for(const [x,y] of s.pts){if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y}}
+  const cx=(x0+x1)/2,cy=(y0+y1)/2,center=drawingToWorld(item,cx,cy);
+  for(const s of item.strokes)for(const pt of s.pts){pt[0]-=cx;pt[1]-=cy}
+  item.x=center.x;item.y=center.y;item.w=x1-x0+pad;item.h=y1-y0+pad;
+ }
  function itemBounds(item){
+  if(item.type==='draw')return {w:item.w||1,h:item.h||1};
   if(item.type==='text'){ctx.save();ctx.font=`${item.font==='serif'?500:item.font==='soft'?400:600} ${item.size}px ${fonts[item.font]||fonts.soft}`;let ls=String(item.text||' ').split('\n');let w=Math.max(...ls.map(s=>ctx.measureText(s||' ').width))+25;ctx.restore();return {w:Math.min(w,2000),h:Math.max(item.size*1.15,ls.length*item.size*1.23)}}
   if(item.type==='image')return {w:item.width,h:item.height};
   return {w:item.size*1.22,h:item.size*1.22};
@@ -230,19 +278,40 @@ textarea{background:#f8fafc;border:1px solid #e0e7ef;border-radius:12px;width:10
  const imprintCanvas=document.createElement('canvas');imprintCanvas.width=W;imprintCanvas.height=H;
  const imprintCtx=imprintCanvas.getContext('2d',{willReadFrequently:true});
  const resultCanvas=document.createElement('canvas');resultCanvas.width=W;resultCanvas.height=H;
- const resultCtx=resultCanvas.getContext('2d');
- function reliefMask(){
-  const c=imprintCtx;c.clearRect(0,0,W,H);c.fillStyle='white';c.strokeStyle='white';
-  for(const item of items){if(item.type==='image')continue;
+ const resultCtx=resultCanvas.getContext('2d',{willReadFrequently:true});
+ // Regions of the patch, corners included. A full pass covers everything; a live one, only
+ // the snow a finger is disturbing right now.
+ const wholeCanvas={x0:0,y0:0,x1:W-1,y1:H-1,full:true},keepAll=()=>true;
+ const padBox=(b,pad)=>({x0:clamp(Math.floor(b.x0-pad),0,W-1),y0:clamp(Math.floor(b.y0-pad),0,H-1),x1:clamp(Math.ceil(b.x1+pad),0,W-1),y1:clamp(Math.ceil(b.y1+pad),0,H-1)});
+ const boxesTouch=(a,b)=>a.x0<=b.x1&&b.x0<=a.x1&&a.y0<=b.y1&&b.y0<=a.y1;
+ function itemBox(item){
+  if(item.type==='draw'){
+   let x0=Infinity,y0=Infinity,x1=-Infinity,y1=-Infinity,pad=0;
+   for(const s of item.strokes){if(s.w>pad)pad=s.w;for(const [lx,ly] of s.pts){const p=drawingToWorld(item,lx,ly);if(p.x<x0)x0=p.x;if(p.x>x1)x1=p.x;if(p.y<y0)y0=p.y;if(p.y>y1)y1=p.y}}
+   pad*=item.scale/2;
+   return {x0:x0-pad,y0:y0-pad,x1:x1+pad,y1:y1+pad};
+  }
+  const b=itemBounds(item),hw=b.w*item.scale/2,hh=b.h*item.scale/2,co=Math.abs(Math.cos(item.rotation)),si=Math.abs(Math.sin(item.rotation)),ex=hw*co+hh*si,ey=hw*si+hh*co;
+  return {x0:item.x-ex,y0:item.y-ey,x1:item.x+ex,y1:item.y+ey};
+ }
+ const maskAlpha=new Uint8Array(W*H);
+ function reliefMask(box,keep){
+  const c=imprintCtx,bw=box.x1-box.x0+1,bh=box.y1-box.y0+1;
+  c.clearRect(box.x0,box.y0,bw,bh);c.fillStyle='white';c.strokeStyle='white';
+  c.save();c.beginPath();c.rect(box.x0,box.y0,bw,bh);c.clip();
+  for(const item of items){if(item.type==='image'||!keep(item)||!boxesTouch(itemBox(item),box))continue;
    c.save();c.translate(item.x,item.y);c.rotate(item.rotation);c.scale(item.scale,item.scale);
    if(item.type==='text')shapeText(c,item);
+   else if(item.type==='draw'){c.lineCap='round';c.lineJoin='round';for(const s of item.strokes){c.lineWidth=s.w;traceStroke(c,s.pts);c.stroke()}}
    else if(item.type==='stamp'){
     c.scale(item.size/112,item.size/112);c.lineCap='round';c.lineJoin='round';c.lineWidth=Math.max(7,760/item.size);
     pathStamp(c,item.kind);c.stroke();
    }
    c.restore();
   }
-  return c.getImageData(0,0,W,H).data;
+  c.restore();
+  const data=c.getImageData(box.x0,box.y0,bw,bh).data;
+  for(let y=0,p=3;y<bh;y++)for(let x=0,i=(box.y0+y)*W+box.x0;x<bw;x++,i++,p+=4)maskAlpha[i]=data[p];
  }
  // V4: concave snow. The floor, shaded inner wall and displaced rim are
  // deliberately separate. Darkening the actual floor (not the outer stroke)
@@ -263,8 +332,8 @@ textarea{background:#f8fafc;border:1px solid #e0e7ef;border-radius:12px;width:10
  // edge wanders, and crumbs of the pushed-out snow fall back across the letters.
  // Reused every frame: dragging repaints constantly and would otherwise churn the GC.
  const core=new Float32Array(W*H),bank=new Float32Array(W*H),height=new Float32Array(W*H),distance=new Float32Array(W*H),mounds=new Float32Array(W*H),
-       pile=new Float32Array(W*H),pileSmooth=new Float32Array(W*H),inside=new Float32Array(W*H),nearest=new Int32Array(W*H),pileList=new Int32Array(W*H),
-       signed=new Float32Array(W*H),signedSmooth=new Float32Array(W*H),signedBand=new Int32Array(W*H),softDepth=new Float32Array(W*H),softDepthNext=new Float32Array(W*H),lifted=new Uint8ClampedArray(W*H*4);
+       pile=new Float32Array(W*H),pileSmooth=new Float32Array(W*H),inside=new Float32Array(W*H),nearest=new Int32Array(W*H),pileList=new Int32Array(W*H),pixelBuffer=new Uint8ClampedArray(W*H*4),
+       signed=new Float32Array(W*H),signedSmooth=new Float32Array(W*H),signedBand=new Int32Array(W*H),softDepth=new Float32Array(W*H),softDepthNext=new Float32Array(W*H),lifted=new Uint8ClampedArray(W*H*4),pixelImage=new ImageData(pixelBuffer,W,H),liftedImage=new ImageData(lifted,W,H);
  const ease=t=>{t=t<0?0:t>1?1:t;return t*t*(3-2*t)};
  // Three ways to look at the same patch of snow. Everything is edited and sculpted flat;
  // a rig only decides how that flat ground reaches the screen. `horizon` and `focus` are
@@ -300,7 +369,7 @@ textarea{background:#f8fafc;border:1px solid #e0e7ef;border-radius:12px;width:10
  // into the view again reframes. Perspective isn't linear, so centering takes a few goes.
  function frameView(v){
   const corners=[];
-  for(const it of items){const b=itemBounds(it),hw=b.w*it.scale*.36,hh=b.h*it.scale*.36,co=Math.cos(it.rotation),si=Math.sin(it.rotation);
+  for(const it of items){const b=itemBounds(it),fit=it.type==='draw'?.5:.36,hw=b.w*it.scale*fit,hh=b.h*it.scale*fit,co=Math.cos(it.rotation),si=Math.sin(it.rotation);
    for(const [sx,sy] of [[-1,-1],[1,-1],[1,1],[-1,1]])corners.push([it.x+sx*hw*co-sy*hh*si,it.y+sx*hw*si+sy*hh*co])}
   if(!corners.length){aimRig(v,v.scale,W/2,H/2);return}
   const xs=corners.map(c=>c[0]),ys=corners.map(c=>c[1]),left=20,right=W-20,top=52,bottom=H-20;
@@ -319,6 +388,9 @@ textarea{background:#f8fafc;border:1px solid #e0e7ef;border-radius:12px;width:10
  }
  const makeCanvas=(w,h,options)=>{const c=document.createElement('canvas');c.width=w;c.height=h;return [c,c.getContext('2d',options)]};
  const [worldCanvas,worldCtx]=makeCanvas(W,H,{willReadFrequently:true});
+ // stillCanvas: the last finished frame, so a change of selection only has to redraw its handles.
+ // frozenCanvas: the flat ground without whatever is being moved. glintLayer: the sparkles alone.
+ const [stillCanvas,stillCtx]=makeCanvas(W,H),[frozenCanvas,frozenCtx]=makeCanvas(W,H),[glintLayer,glintCtx]=makeCanvas(W,H);
  // The ground reaches well past the edited patch, so it is the patch's own base mirrored outward.
  const FAR_W=W*3,FAR_H=Math.round(H*3.2),FAR_X=W*1.5,FAR_Y=Math.round(H*2.2);
  const [farCanvas,farCtx]=makeCanvas(FAR_W,FAR_H),[farBaseCanvas,farBaseCtx]=makeCanvas(FAR_W,FAR_H);
@@ -475,20 +547,28 @@ textarea{background:#f8fafc;border:1px solid #e0e7ef;border-radius:12px;width:10
   }
   c.restore();
  }
- function sculptedSnow(){
-  if(!snowPixels)createSnow();
-  if(!clumpNoise){clumpNoise=valueField(72,52,29380);crystalNoise=valueField(180,129,72412);grainField=bakeGrain()}
-  const mask=reliefMask();
-  const pixels=new Uint8ClampedArray(snowPixels);
-  core.fill(0);bank.fill(0);height.fill(0);mounds.fill(0);pile.fill(0);distance.fill(32767);signed.fill(44);softDepth.fill(0);
+ function bakeGlints(){glintCtx.clearRect(0,0,W,H);drawGlints(glintCtx)}
+ function showGlints(){const v=VIEWS[viewName];ctx.globalCompositeOperation=v&&v.glow?'lighter':'source-over';ctx.drawImage(glintLayer,0,0);ctx.globalCompositeOperation='source-over'}
+ const resetBox=(field,value,box)=>{if(box.full){field.fill(value);return}for(let y=box.y0,a=y*W+box.x0,n=box.x1-box.x0+1;y<=box.y1;y++,a+=W)field.fill(value,a,a+n)};
+ const copyBox=(to,from,box)=>{if(box.full){to.set(from);return}for(let y=box.y0,n=(box.x1-box.x0+1)*4;y<=box.y1;y++){const a=(y*W+box.x0)*4;to.set(from.subarray(a,a+n),a)}};
+ // First grid line at or after `from`, so a partial pass lands on the same cells as a full one.
+ const gridFrom=(from,first,step)=>first+Math.max(0,Math.ceil((from-first)/step))*step;
+ // The extent of the last carve, and whether it still stands: a change of light alone can reuse it.
+ let X0=0,X1=-1,Y0=0,Y1=-1,carved=false,lastShaded=pixelBuffer;
+ const carveDepth=()=>({light:12,normal:26,deep:43})[depth]||26;
+ // Digs the trenches and piles the snow they lost. A partial pass stops 16px inside its box,
+ // because everything here reaches a few pixels past the cell it is working on.
+ function carve(box,keep){
+  reliefMask(box,keep);
+  for(const [field,value] of [[core,0],[bank,0],[height,0],[mounds,0],[pile,0],[distance,32767],[inside,32767],[signed,44],[softDepth,0]])resetBox(field,value,box);
   // Everything below stays within reach of the letters, so a sparse canvas costs little.
   let minX=W,maxX=-1,minY=H,maxY=-1;
-  for(let y=0,p=3;y<H;y++)for(let x=0;x<W;x++,p+=4)if(mask[p]>0){if(x<minX)minX=x;if(x>maxX)maxX=x;if(y<minY)minY=y;maxY=y}
-  const X0=Math.max(1,minX-48),X1=Math.min(W-2,maxX+48),Y0=Math.max(1,minY-48),Y1=Math.min(H-2,maxY+48);
-  const D=({light:12,normal:26,deep:43})[depth]||26;
-  const scale=pileStrength;
+  for(let y=box.y0;y<=box.y1;y++)for(let x=box.x0,i=y*W+x;x<=box.x1;x++,i++)if(maskAlpha[i]>0){if(x<minX)minX=x;if(x>maxX)maxX=x;if(y<minY)minY=y;maxY=y}
+  const margin=box.full?1:16;
+  X0=Math.max(box.x0+margin,minX-48);X1=Math.min(box.x1-margin,maxX+48);Y0=Math.max(box.y0+margin,minY-48);Y1=Math.min(box.y1-margin,maxY+48);
+  const D=carveDepth(),scale=pileStrength;
   // Fast 8-neighbor Euclidean-distance approximation, outward from the letters...
-  for(let y=Y0;y<=Y1;y++)for(let x=X0;x<=X1;x++){const i=y*W+x;if(mask[i*4+3]>116)distance[i]=0}
+  for(let y=Y0;y<=Y1;y++)for(let x=X0;x<=X1;x++){const i=y*W+x;if(maskAlpha[i]>116)distance[i]=0}
   const diag=1.41421356;
   for(let y=Y0;y<=Y1;y++)for(let x=X0;x<=X1;x++){
     const i=y*W+x;if(distance[i]===0)continue;
@@ -514,7 +594,7 @@ textarea{background:#f8fafc;border:1px solid #e0e7ef;border-radius:12px;width:10
   let band=0;
   for(let y=Y0;y<=Y1;y++)for(let x=X0;x<=X1;x++){
    const i=y*W+x,sd=distance[i]>0?Math.min(44,distance[i]):-Math.min(44,inside[i]);
-   signed[i]=sd;softDepth[i]=mask[i*4+3]/255;
+   signed[i]=sd;softDepth[i]=maskAlpha[i]/255;
    if(sd>=-12&&sd<=12&&y>=4&&y<H-4&&x>=4&&x<W-4)signedBand[band++]=i;
   }
   for(const step of [2,1,1])for(const axis of [step,W*step]){
@@ -535,11 +615,11 @@ textarea{background:#f8fafc;border:1px solid #e0e7ef;border-radius:12px;width:10
    for(let y=Y0;y<=Y1;y++)for(let x=X0;x<=X1;x++){
     const i=y*W+x,from=nearest[i];if(from===i||from<0)continue;
     const fx=from%W,fy=(from-fx)/W,len=Math.hypot(fx-x,fy-y)||1,ux=(fx-x)/len,uy=(fy-y)/len;
-    const reach=Math.min(24,Math.ceil(inside[i])+2),share=mask[i*4+3]/255*spill/reach;
+    const reach=Math.min(24,Math.ceil(inside[i])+2),share=maskAlpha[i]/255*spill/reach;
     let landing=from;
     for(let k=0;k<reach;k++){
      const tx=Math.round(fx+ux*k),ty=Math.round(fy+uy*k);
-     if(tx<1||ty<1||tx>=W-1||ty>=H-1)break;
+     if(tx<X0||ty<Y0||tx>X1||ty>Y1)break;
      const t=ty*W+tx;if(distance[t]>0)landing=t;
      pile[landing]+=share;
     }
@@ -590,11 +670,12 @@ textarea{background:#f8fafc;border:1px solid #e0e7ef;border-radius:12px;width:10
     for(let a=0;a<band;a++){const i=signedBand[a];if(distance[i]===0)pile[i]=pileSmooth[i]}
    }
    const heap=VIEWS[viewName]?VIEWS[viewName].heap:1;
+   const limX0=Math.max(2,box.x0),limX1=Math.min(W-3,box.x1),limY0=Math.max(2,box.y0),limY1=Math.min(H-3,box.y1);
    // A clump never stays a clean disc: noise frays its outline.
    const splat=(px,py,radius,aspect,amp,fray,deepest)=>{
     const r=Math.ceil(radius*1.3),ry=Math.ceil(radius*aspect*1.3);
     for(let oy=-ry;oy<=ry;oy++)for(let ox=-r;ox<=r;ox++){
-     const xx=px+ox,yy=py+oy;if(xx<2||xx>=W-2||yy<2||yy>=H-2)continue;
+     const xx=px+ox,yy=py+oy;if(xx<limX0||xx>limX1||yy<limY0||yy>limY1)continue;
      const j=yy*W+xx;if(signed[j]<deepest)continue;
      const t=((ox*ox)/(radius*radius)+(oy*oy)/(radius*radius*aspect*aspect))*(1+((mediumNoise[j]-167)/87*.5+(fineNoise[j]-128)/128*.5)*fray);
      if(t>=1)continue;
@@ -603,7 +684,7 @@ textarea{background:#f8fafc;border:1px solid #e0e7ef;border-radius:12px;width:10
    };
    // Soft swells where the pile is thick, low enough to read as drift rather than beads.
    // They may lap over the rim but stop short of the stroke's middle.
-   for(let y=12;y<H-12;y+=8)for(let x=12;x<W-12;x+=8){
+   for(let y=gridFrom(Y0-4,12,8);y<Math.min(H-12,Y1+5);y+=8)for(let x=gridFrom(X0-4,12,8);x<Math.min(W-12,X1+5);x+=8){
     if(cellRand(x,y,0)>.62)continue;
     const px=x+Math.round((cellRand(x,y,1)-.5)*7),py=y+Math.round((cellRand(x,y,2)-.5)*7);
     const i=py*W+px,local=pile[i];
@@ -612,7 +693,7 @@ textarea{background:#f8fafc;border:1px solid #e0e7ef;border-radius:12px;width:10
    }
    // Crumbs: most of the pushed snow is small and sits right at the lip, some tumbled
    // back over it, and a few lie loose on the trough floor.
-   for(let y=6;y<H-6;y+=3)for(let x=6;x<W-6;x+=3){
+   for(let y=gridFrom(Y0,6,3);y<Math.min(H-6,Y1+1);y+=3)for(let x=gridFrom(X0,6,3);x<Math.min(W-6,X1+1);x+=3){
     const sd=signed[y*W+x];
     if(sd>15)continue;
     const loose=sd<-2.5,odds=sd<0?.012+.26*ease((sd+2.5)/2.5):.53*Math.exp(-sd/3.4);
@@ -622,6 +703,15 @@ textarea{background:#f8fafc;border:1px solid #e0e7ef;border-radius:12px;width:10
     splat(px,py,size,.7+cellRand(x,y,10)*.6,(loose?.9:1.8+cellRand(x,y,11)*2.6)*Math.min(1,.4+scale*.4),.8,-99);
    }
   }
+ }
+ // `box` is what gets recomputed, `out` the part of it trusted enough to show: near the
+ // box's edge a partial pass cannot see the snow beyond it.
+ function sculptedSnow(box=wholeCanvas,keep=keepAll,out=box){
+  if(!snowPixels)createSnow();
+  if(!clumpNoise){clumpNoise=valueField(72,52,29380);crystalNoise=valueField(180,129,72412);grainField=bakeGrain()}
+  if(!box.full||!carved){carve(box,keep);carved=!!box.full}
+  const D=carveDepth(),pixels=pixelBuffer;
+  copyBox(pixels,snowPixels,box);
   for(let y=Y0;y<=Y1;y++)for(let x=X0;x<=X1;x++){
    const i=y*W+x;
    if(signed[i]>40)continue;
@@ -707,7 +797,7 @@ textarea{background:#f8fafc;border:1px solid #e0e7ef;border-radius:12px;width:10
   // behind it, so a bank can cover part of the stroke. Walked near to far, a column at a time.
   let shaded=pixels;
   if(rig){
-   lifted.set(pixels);shaded=lifted;
+   copyBox(lifted,pixels,box);shaded=lifted;
    const k=rig.lift,dig=D*.2;
    for(let x=Math.max(2,X0);x<=Math.min(W-3,X1);x++){
     let top=Y1+1;
@@ -720,7 +810,8 @@ textarea{background:#f8fafc;border:1px solid #e0e7ef;border-radius:12px;width:10
     }
    }
   }
-  resultCtx.putImageData(new ImageData(shaded,W,H),0,0);
+  lastShaded=shaded;
+  resultCtx.putImageData(shaded===lifted?liftedImage:pixelImage,0,0,out.x0,out.y0,out.x1-out.x0+1,out.y1-out.y0+1);
   return resultCanvas;
  }
  function drawPictureItem(c,item){
@@ -764,91 +855,245 @@ textarea{background:#f8fafc;border:1px solid #e0e7ef;border-radius:12px;width:10
   const card=canvas.parentElement;
   card.classList.toggle('cropped',!!rect);
   if(!rect){card.style.aspectRatio=card.style.width=card.style.marginInline=canvas.style.cssText='';$('sizeInfo').textContent=`${W} × ${H} px`;return}
-  card.style.aspectRatio=`${rect.w} / ${rect.h}`;card.style.width=`min(100%, calc(78vh * ${rect.w/rect.h}))`;card.style.marginInline='auto';
+  card.style.aspectRatio=`${rect.w} / ${rect.h}`;card.style.width=`min(100%, calc(var(--stage-max-h) * ${rect.w/rect.h}))`;card.style.marginInline='auto';
   canvas.style.cssText=`position:absolute;max-width:none;height:auto;width:${W/rect.w*100}%;left:${-rect.x/rect.w*100}%;top:${-rect.y/rect.h*100}%`;
   const k=exportScale(rect);$('sizeInfo').textContent=`${Math.round(rect.w*k)} × ${Math.round(rect.h*k)} px`;
  }
- function renderScene(exporting=false){
-  const rig=VIEWS[viewName],flat=rig?worldCtx:ctx;
-  flat.clearRect(0,0,W,H);
-  const sculpt=sculptedSnow();
+ // Lays the sculpted snow, and any pictures on it, into the flat ground.
+ function composeFlat(box,sculpt,skip){
+  const bx=box.x0,by=box.y0,bw=box.x1-bx+1,bh=box.y1-by+1,flat=worldCtx;
+  flat.save();flat.beginPath();flat.rect(bx,by,bw,bh);flat.clip();flat.clearRect(bx,by,bw,bh);
   if(backgroundImage){
    const iw=backgroundImage.naturalWidth,ih=backgroundImage.naturalHeight,sc=Math.max(W/iw,H/ih);
    flat.drawImage(backgroundImage,(W-iw*sc)/2,(H-ih*sc)/2,iw*sc,ih*sc);
    // Multiply neutral shading over any uploaded photo while preserving grain.
-   const raw=flat.getImageData(0,0,W,H),r=raw.data,base=snowPixels,rel=resultCtx.getImageData(0,0,W,H).data;
-   for(let p=0;p<r.length;p+=4){r[p]=Math.max(0,Math.min(255,r[p]+rel[p]-base[p]));r[p+1]=Math.max(0,Math.min(255,r[p+1]+rel[p+1]-base[p+1]));r[p+2]=Math.max(0,Math.min(255,r[p+2]+rel[p+2]-base[p+2]));}
-   flat.putImageData(raw,0,0);
-  }else flat.drawImage(sculpt,0,0);
-  for(const item of items)drawPictureItem(flat,item);
-  if(rig)warpGround();
+   const raw=flat.getImageData(bx,by,bw,bh),r=raw.data,base=snowPixels,rel=resultCtx.getImageData(bx,by,bw,bh).data;
+   for(let y=0,p=0;y<bh;y++)for(let x=0,q=((by+y)*W+bx)*4;x<bw;x++,p+=4,q+=4){r[p]=Math.max(0,Math.min(255,r[p]+rel[p]-base[q]));r[p+1]=Math.max(0,Math.min(255,r[p+1]+rel[p+1]-base[q+1]));r[p+2]=Math.max(0,Math.min(255,r[p+2]+rel[p+2]-base[q+2]))}
+   flat.putImageData(raw,bx,by);
+  }else flat.drawImage(sculpt,bx,by,bw,bh,bx,by,bw,bh);
+  for(const item of items)if(item!==skip)drawPictureItem(flat,item);
+  flat.restore();
+ }
+ function presentWorld(){if(VIEWS[viewName])warpGround();else ctx.drawImage(worldCanvas,0,0)}
+ function drawHandles(){if(selected&&hasInteracted&&!drawMode){const it=items.find(i=>i.id===selected);if(it)controls(ctx,it)}}
+ let rendered=false,sceneStale=false,settleTimer=0;
+ function renderScene(exporting=false){
+  rendered=true;
+  if(settleTimer){clearTimeout(settleTimer);settleTimer=0}
+  composeFlat(wholeCanvas,sculptedSnow());
+  presentWorld();
   drawGlints(ctx);
-  if(cropOn&&!pointerState)showCrop(measureCrop());
-  if(!exporting&&selected&&hasInteracted){const it=items.find(i=>i.id===selected);if(it)controls(ctx,it)}
+  stillCtx.globalCompositeOperation='copy';stillCtx.drawImage(canvas,0,0);
+  if(cropOn&&!pointerState&&!drawMode)showCrop(measureCrop());
+  if(!exporting)drawHandles();
+ }
+ // While a finger is on something, the full sculpt is far too slow to follow it. `live` holds
+ // what is being moved or written; the real snow is worked out again the moment it lets go.
+ //  - moving: a picture of the item alone slides over a frozen copy of the ground without it.
+ //  - writing: only the snow around the newest stretch of the stroke is sculpted.
+ const LIVE_REACH=46,LIVE_MARGIN=34;
+ let live=null,liveRest=0;
+ // Undisturbed snow goes transparent, so the picture carries only the marks and not a patch of ground.
+ function cutSprite(box){
+  const bw=box.x1-box.x0+1,bh=box.y1-box.y0+1,[c,g]=makeCanvas(bw,bh),im=g.createImageData(bw,bh),d=im.data,from=lastShaded,base=snowPixels;
+  for(let y=0,n=0;y<bh;y++)for(let x=0,p=((box.y0+y)*W+box.x0)*4;x<bw;x++,p+=4,n+=4){
+   const moved=Math.max(Math.abs(from[p]-base[p]),Math.abs(from[p+1]-base[p+1]),Math.abs(from[p+2]-base[p+2]));
+   if(moved<2)continue;
+   d[n]=from[p];d[n+1]=from[p+1];d[n+2]=from[p+2];d[n+3]=Math.min(255,moved*32);
+  }
+  g.putImageData(im,0,0);
+  return c;
+ }
+ function startLive(item){
+  const out=padBox(itemBox(item),LIVE_REACH),box=padBox(out,LIVE_MARGIN);
+  let sprite=null;
+  if(item.type!=='image'){
+   sculptedSnow(box,it=>it===item,out);
+   sprite=cutSprite(out);
+   composeFlat(out,sculptedSnow(box,it=>it!==item,out),item);
+  }else composeFlat(out,resultCanvas,item);
+  frozenCtx.globalCompositeOperation='copy';frozenCtx.drawImage(worldCanvas,0,0);
+  bakeGlints();
+  live={kind:'move',item,sprite,dx:out.x0-item.x,dy:out.y0-item.y,size:item.scale*(item.size||1),rotation:item.rotation};
+ }
+ function drawLiveMove(){
+  const {item,sprite}=live;
+  worldCtx.globalCompositeOperation='copy';worldCtx.drawImage(frozenCanvas,0,0);worldCtx.globalCompositeOperation='source-over';
+  if(sprite){const k=item.scale*(item.size||1)/live.size;worldCtx.save();worldCtx.translate(item.x,item.y);worldCtx.rotate(item.rotation-live.rotation);worldCtx.scale(k,k);worldCtx.drawImage(sprite,live.dx,live.dy);worldCtx.restore()}
+  else drawPictureItem(worldCtx,item);
+  presentWorld();showGlints();drawHandles();
+ }
+ function drawLiveStroke(){
+  const d=live.dirty;if(!d)return;
+  live.dirty=null;
+  const out=padBox(d,34+drawWeight/2),box=padBox(out,LIVE_MARGIN),bx=out.x0,by=out.y0,bw=out.x1-bx+1,bh=out.y1-by+1;
+  composeFlat(out,sculptedSnow(box,keepAll,out));
+  if(VIEWS[viewName]){warpGround();showGlints()}
+  else{ctx.drawImage(worldCanvas,bx,by,bw,bh,bx,by,bw,bh);ctx.drawImage(glintLayer,bx,by,bw,bh,bx,by,bw,bh)}
  }
  let requestedFrame=0;
- function paint(exporting=false){
-  if(exporting){if(requestedFrame){cancelAnimationFrame(requestedFrame);requestedFrame=0}renderScene(true);return}
+ function frame(){
+  if(live){if(live.kind==='stroke')drawLiveStroke();else drawLiveMove();return}
+  if(sceneStale||!rendered){sceneStale=false;renderScene(false);return}
+  // A finished stroke is on screen and newer than the last full frame.
+  if(settleTimer)return;
+  ctx.drawImage(stillCanvas,0,0);drawHandles();
+ }
+ function schedule(){
   if(requestedFrame)return;
-  requestedFrame=requestAnimationFrame(()=>{requestedFrame=0;try{renderScene(false)}catch(e){console.error('Snow render failed:',e);const n=document.getElementById('snowFailure');if(n){n.hidden=false;n.style.display='flex';}}});
+  requestedFrame=requestAnimationFrame(()=>{requestedFrame=0;try{frame()}catch(e){console.error('Snow render failed:',e);const n=document.getElementById('snowFailure');if(n){n.hidden=false;n.style.display='flex';}}});
+ }
+ // Something changed the snow itself.
+ function paint(exporting=false){
+  if(exporting){if(requestedFrame){cancelAnimationFrame(requestedFrame);requestedFrame=0}carved=false;sceneStale=false;renderScene(true);return}
+  carved=false;sceneStale=true;schedule();
+ }
+ // Only the light changed: the trenches and piles still stand.
+ function relight(){sceneStale=true;schedule()}
+ // Only the selection changed.
+ function paintHandles(){schedule()}
+ function settleLive(){clearTimeout(liveRest);if(live&&live.kind==='move'&&!pointerState){live=null;paint()}}
+ // Size and angle slide the same picture a drag does; the snow is worked out once the slider rests.
+ function slideItem(change){
+  const item=selectedItem();if(!item)return;
+  if(!live)startLive(item);
+  change(item);clearTimeout(liveRest);liveRest=setTimeout(settleLive,240);schedule();
+ }
+ // A stroke leaves the patch and picks up again where it comes back on, since only the patch has snow to dig.
+ function strokePoint(w,exact){
+  if(w.x<4||w.y<4||w.x>W-4||w.y>H-4){live.stroke=null;if(!live.warned){live.warned=true;tell('这里已经超出雪地，往中间写')}return}
+  if(!live.item){const it={id:ids++,type:'draw',x:w.x,y:w.y,scale:1,rotation:0,strokes:[],w:0,h:0};items.push(it);selected=it.id;live.item=it}
+  const item=live.item,q=localPoint(w,item),lx=q.x/item.scale,ly=q.y/item.scale,note=(x,y)=>{const p=drawingToWorld(item,x,y),d=live.dirty;if(!d)live.dirty={x0:p.x,y0:p.y,x1:p.x,y1:p.y};else{if(p.x<d.x0)d.x0=p.x;if(p.x>d.x1)d.x1=p.x;if(p.y<d.y0)d.y0=p.y;if(p.y>d.y1)d.y1=p.y}};
+  if(!live.stroke){live.stroke={w:drawWeight/item.scale,pts:[[lx,ly]]};item.strokes.push(live.stroke);note(lx,ly);return}
+  const pts=live.stroke.pts,a=pts[pts.length-1],follow=exact?1:.72,x=a[0]+(lx-a[0])*follow,y=a[1]+(ly-a[1])*follow;
+  if(Math.hypot(x-a[0],y-a[1])*item.scale<2)return;
+  pts.push([x,y]);
+  // The curve's last stretch bends as each new sample arrives, so the two before it are redrawn too.
+  for(let k=Math.max(0,pts.length-3);k<pts.length;k++)note(pts[k][0],pts[k][1]);
+ }
+ function beginStroke(e){
+  if(live)return;
+  hasInteracted=true;canvas.setPointerCapture(e.pointerId);
+  if(settleTimer){clearTimeout(settleTimer);settleTimer=0}
+  bakeGlints();
+  const it=selectedItem();
+  live={kind:'stroke',item:it&&it.type==='draw'?it:null,stroke:null,dirty:null};
+  strokePoint(getPoint(e));schedule();
+ }
+ function finishStroke(e){
+  if(e.type==='pointerup')strokePoint(getPoint(e),true);
+  drawLiveStroke();
+  if(live.item)fitDrawing(live.item);
+  live=null;syncUI();
+  // Held back a moment so that writing a word doesn't stall between its strokes.
+  settleTimer=setTimeout(()=>{settleTimer=0;paint()},520);
+ }
+ function undoStroke(){
+  const item=selectedItem();if(!item||item.type!=='draw')return;
+  item.strokes.pop();
+  if(item.strokes.length)fitDrawing(item);else{items.splice(items.indexOf(item),1);selected=null}
+  syncUI();paint();
+ }
+ function setDrawMode(on){
+  if(on===drawMode)return;
+  drawMode=on;canvas.classList.toggle('drawing',on);stageHint.textContent=restingHint();
+  if(on){
+   const it=selectedItem();if(it&&it.type!=='draw'){selected=null;syncUI()}
+   // Writing needs the whole patch to land on; the crop comes back on leaving.
+   if(cropOn)showCrop(null);
+   paintHandles();
+  }else if(settleTimer||cropOn)paint();
+  else paintHandles();
  }
  function getScreen(evt){let rect=canvas.getBoundingClientRect();return {x:(evt.clientX-rect.left)/rect.width*W,y:(evt.clientY-rect.top)/rect.height*H}}
  function getPoint(evt){const s=getScreen(evt);return unproject(s.x,s.y)}
  function localPoint(p,item){let dx=p.x-item.x,dy=p.y-item.y,co=Math.cos(-item.rotation),si=Math.sin(-item.rotation);return {x:dx*co-dy*si,y:dx*si+dy*co}}
- function hit(item,p){let q=localPoint(p,item),b=itemBounds(item);return Math.abs(q.x)<b.w*item.scale/2+24&&Math.abs(q.y)<b.h*item.scale/2+24}
+ function hit(item,p){let q=localPoint(p,item),b=itemBounds(item);
+  // A drawing is mostly empty space: only its lines are something to pick up.
+  if(item.type==='draw'){
+   const qx=q.x/item.scale,qy=q.y/item.scale,reach=44/item.scale;
+   for(const s of item.strokes)for(let k=0;k<s.pts.length;k++){
+    const [ax,ay]=s.pts[k],[bx,by]=s.pts[Math.min(k+1,s.pts.length-1)],dx=bx-ax,dy=by-ay,t=clamp(((qx-ax)*dx+(qy-ay)*dy)/(dx*dx+dy*dy||1),0,1);
+    if(Math.hypot(ax+dx*t-qx,ay+dy*t-qy)<reach)return true;
+   }
+   return false;
+  }
+  return Math.abs(q.x)<b.w*item.scale/2+24&&Math.abs(q.y)<b.h*item.scale/2+24}
  // The closest handle wins: on a tiny item they overlap, and a stray delete would cost the item.
  // Measured on screen, where the handles are drawn at a constant size in every view.
  function handleHit(item,screen){let best=null,bestDist=28;for(const [mode,p] of Object.entries(handleSpots(item))){if(!p)continue;const d=Math.hypot(screen.x-p.x,screen.y-p.y);if(d<bestDist){best=mode;bestDist=d}}return best}
- canvas.addEventListener('pointerdown',e=>{const handlesShown=hasInteracted;hasInteracted=true;let p=getPoint(e);let item=items.find(i=>i.id===selected),h=item&&handlesShown?handleHit(item,getScreen(e)):null;
+ canvas.addEventListener('pointerdown',e=>{if(!e.isPrimary)return;if(live&&live.kind==='move')settleLive();if(drawMode){beginStroke(e);return}const handlesShown=hasInteracted;hasInteracted=true;let p=getPoint(e);let item=items.find(i=>i.id===selected),h=item&&handlesShown?handleHit(item,getScreen(e)):null;
   if(h==='delete'){del();return}
-  if(h){pointerState={mode:h,id:item.id,start:p,oldScale:item.scale,oldRot:item.rotation,dist:Math.hypot(p.x-item.x,p.y-item.y)};canvas.setPointerCapture(e.pointerId);return}
+  if(h){pointerState={mode:h,id:item.id,start:p,oldScale:item.scale,oldRot:item.rotation,dist:Math.hypot(p.x-item.x,p.y-item.y),cx:e.clientX,cy:e.clientY};canvas.setPointerCapture(e.pointerId);return}
   item=items.slice().reverse().find(i=>hit(i,p));selected=item?item.id:null;
-  if(item){pointerState={mode:'drag',id:item.id,start:p,oldX:item.x,oldY:item.y};canvas.setPointerCapture(e.pointerId)}else pointerState=null;
-  syncUI();paint();
+  if(item){pointerState={mode:'drag',id:item.id,start:p,oldX:item.x,oldY:item.y,cx:e.clientX,cy:e.clientY};canvas.setPointerCapture(e.pointerId)}else pointerState=null;
+  syncUI();paintHandles();
  });
- canvas.addEventListener('pointermove',e=>{if(!pointerState)return;const p=getPoint(e),s=pointerState,item=items.find(i=>i.id===s.id);if(!item)return;
+ canvas.addEventListener('pointermove',e=>{
+  if(!e.isPrimary)return;
+  if(live&&live.kind==='stroke'){
+   for(const sample of (e.getCoalescedEvents&&e.getCoalescedEvents().length?e.getCoalescedEvents():[e]))strokePoint(getPoint(sample));
+   schedule();return;
+  }
+  if(!pointerState)return;const s=pointerState,item=items.find(i=>i.id===s.id);if(!item)return;
+  // A tap's small tremble isn't a drag, and picking the item up isn't free.
+  if(!live){if(Math.hypot(e.clientX-s.cx,e.clientY-s.cy)<3)return;startLive(item)}
+  const p=getPoint(e);
   if(s.mode==='drag'){const staysOnPatch=!!VIEWS[viewName];item.x=clamp(s.oldX+p.x-s.start.x,staysOnPatch?40:-W/3,staysOnPatch?W-40:W*4/3);item.y=clamp(s.oldY+p.y-s.start.y,staysOnPatch?40:-H/3,staysOnPatch?H-40:H*4/3)}
   if(s.mode==='scale')item.scale=clamp(s.oldScale*Math.hypot(p.x-item.x,p.y-item.y)/Math.max(1,s.dist),.2,3);
   if(s.mode==='rotate')item.rotation=Math.atan2(p.y-item.y,p.x-item.x)+Math.PI/2;
-  syncAdjust();paint();
+  if(s.mode!=='drag')syncAdjust();
+  schedule();
  });
- function stopDrag(){pointerState=null;if(cropOn)paint()}canvas.addEventListener('pointerup',stopDrag);canvas.addEventListener('pointercancel',stopDrag);
- document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>{document.querySelectorAll('.tab').forEach(el=>el.classList.toggle('active',el===t));document.querySelectorAll('.tab-panel').forEach(p=>p.classList.toggle('active',p.dataset.panel===t.dataset.tab))}));
+ function stopDrag(e){
+  if(!e.isPrimary)return;
+  if(live&&live.kind==='stroke'){finishStroke(e);return}
+  pointerState=null;
+  if(live){live=null;paint()}
+ }
+ canvas.addEventListener('pointerup',stopDrag);canvas.addEventListener('pointercancel',stopDrag);
+ document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>{document.querySelectorAll('.tab').forEach(el=>el.classList.toggle('active',el===t));document.querySelectorAll('.tab-panel').forEach(p=>p.classList.toggle('active',p.dataset.panel===t.dataset.tab));setDrawMode(t.dataset.tab==='draw')}));
  function activateTab(name){document.querySelector(`.tab[data-tab="${name}"]`).click()}
  function selectedItem(){return items.find(i=>i.id===selected)}
- function syncAdjust(){let item=selectedItem();$('selectedHint').textContent=item?`当前选中：${item.type==='text'?'「'+(item.text||'空白文字').slice(0,12)+'」':item.type==='image'?'自定义图片':'雪地印章'} · 可直接拖动`:'点击画布中的文字或图案，开始调整。';$('scaleRange').value=item?Math.round(item.scale*100):100;$('scaleOut').textContent=$('scaleRange').value+'%';$('rotateRange').value=item?Math.round(item.rotation*180/Math.PI):0;$('rotateOut').textContent=$('rotateRange').value+'°';for(const id of ['deleteBtn','deleteAdjust','deleteMaterial'])$(id).disabled=!item}
+ function syncAdjust(){let item=selectedItem();$('selectedHint').textContent=item?`当前选中：${item.type==='text'?'「'+(item.text||'空白文字').slice(0,12)+'」':item.type==='image'?'自定义图片':item.type==='draw'?'手绘':'雪地印章'} · 可直接拖动`:'点击画布中的文字或图案，开始调整。';$('scaleRange').value=item?Math.round(item.scale*100):100;$('scaleOut').textContent=$('scaleRange').value+'%';$('rotateRange').value=item?Math.round(item.rotation*180/Math.PI):0;$('rotateOut').textContent=$('rotateRange').value+'°';for(const id of ['deleteBtn','deleteAdjust','deleteMaterial'])$(id).disabled=!item;$('undoStroke').disabled=$('clearDrawing').disabled=!item||item.type!=='draw'}
  function syncUI(){let item=selectedItem();$('wordInput').disabled=!!item&&item.type!=='text';$('fontSelect').disabled=$('wordInput').disabled;$('fontSize').disabled=$('wordInput').disabled;if(item&&item.type==='text'){$('wordInput').value=item.text;$('fontSelect').value=item.font;$('fontSize').value=item.size;$('fontSizeOut').textContent=item.size}else if(!item){$('wordInput').value='';$('fontSizeOut').textContent=$('fontSize').value}syncAdjust()}
  $('wordInput').addEventListener('input',e=>{hasInteracted=true;let item=selectedItem();if(!item||item.type!=='text'){item={id:ids++,type:'text',text:'',x:W/2,y:H/2,size:96,scale:1,rotation:0,font:'soft'};items.push(item);selected=item.id}$('wordInput').disabled=false;item.text=e.target.value;syncAdjust();paint()});
- $('fontSize').addEventListener('input',e=>{let item=selectedItem();if(item&&item.type==='text')item.size=+e.target.value;$('fontSizeOut').textContent=e.target.value;paint()});
+ $('fontSize').addEventListener('input',e=>{let item=selectedItem();if(item&&item.type==='text')slideItem(it=>{it.size=+e.target.value});$('fontSizeOut').textContent=e.target.value});
+ $('fontSize').addEventListener('change',settleLive);
  $('fontSelect').addEventListener('change',e=>{let item=selectedItem();if(item&&item.type==='text')item.font=e.target.value;paint()});
  $('addTextBtn').addEventListener('click',()=>{let item={id:ids++,type:'text',text:'写点什么…',x:W/2,y:H*.69,size:72,scale:1,rotation:0,font:'soft'};items.push(item);selected=item.id;syncUI();$('wordInput').focus();$('wordInput').select();paint()});
- function del(){if(selected){let ix=items.findIndex(i=>i.id===selected);if(ix>=0)items.splice(ix,1);selected=null;syncUI();paint()}}
- $('deleteBtn').addEventListener('click',del);$('deleteAdjust').addEventListener('click',del);$('deleteMaterial').addEventListener('click',del);
+ function del(){if(selected){let ix=items.findIndex(i=>i.id===selected);if(ix>=0)items.splice(ix,1);selected=null;live=null;syncUI();paint()}}
+ $('deleteBtn').addEventListener('click',del);$('deleteAdjust').addEventListener('click',del);$('deleteMaterial').addEventListener('click',del);$('clearDrawing').addEventListener('click',del);$('undoStroke').addEventListener('click',undoStroke);
+ document.querySelectorAll('[data-weight]').forEach(btn=>btn.addEventListener('click',()=>{drawWeight=+btn.dataset.weight;document.querySelectorAll('[data-weight]').forEach(b=>b.classList.toggle('active',b===btn))}));
  // Each button shows the stamp itself, so an icon can never drift from what gets pressed.
  document.querySelectorAll('[data-view]').forEach(btn=>btn.addEventListener('click',()=>{viewName=btn.dataset.view;if(VIEWS[viewName])frameView(VIEWS[viewName]);document.querySelector('.stage-corner').classList.toggle('on-dark',viewName==='low');document.querySelectorAll('[data-view]').forEach(b=>b.classList.toggle('active',b===btn));paint()}));
  document.querySelectorAll('.material canvas').forEach(icon=>{const c=icon.getContext('2d');c.translate(30,30);c.scale(.46,.46);c.strokeStyle='#697d95';c.lineCap='round';c.lineJoin='round';c.lineWidth=8;pathStamp(c,icon.parentElement.dataset.stamp);c.stroke()});
  document.querySelectorAll('[data-stamp]').forEach(btn=>btn.addEventListener('click',()=>{let n=items.filter(i=>i.type==='stamp').length,item={id:ids++,type:'stamp',kind:btn.dataset.stamp,x:W/2+(n%4-1.5)*72,y:H/2+(n%3-1)*70,size:+btn.dataset.size||105,scale:1,rotation:btn.dataset.size?(n%5-2)*.07:0};items.push(item);selected=item.id;syncUI();paint()}));
  document.querySelectorAll('[data-bg]').forEach(btn=>btn.addEventListener('click',()=>{background=btn.dataset.bg;backgroundImage=null;snowLayer=null;snowPixels=null;document.querySelectorAll('[data-bg]').forEach(b=>b.classList.toggle('active',b===btn));paint()}));
- const stageHint=$('stageHint'),restingHint=stageHint.textContent;let hintTimer=0;
- function tell(message){stageHint.textContent=message;clearTimeout(hintTimer);hintTimer=setTimeout(()=>{stageHint.textContent=restingHint},5000)}
+ const stageHint=$('stageHint'),dragHint=stageHint.textContent,restingHint=()=>drawMode?'手指落在雪上就是一笔 · 松开可以接着写':dragHint;let hintTimer=0;
+ function tell(message){stageHint.textContent=message;stageHint.parentElement.classList.add('telling');clearTimeout(hintTimer);hintTimer=setTimeout(()=>{stageHint.textContent=restingHint();stageHint.parentElement.classList.remove('telling')},5000)}
  function loadImageFile(file,callback){if(!file||!file.type.startsWith('image/'))return;let url=URL.createObjectURL(file),img=new Image();img.onload=()=>{URL.revokeObjectURL(url);callback(img)};img.onerror=()=>{URL.revokeObjectURL(url);tell('图片读取失败，请换一个格式试试。')};img.src=url}
  $('bgUpload').addEventListener('change',e=>{loadImageFile(e.target.files[0],img=>{backgroundImage=img;document.querySelectorAll('[data-bg]').forEach(b=>b.classList.remove('active'));paint()});e.target.value=''});
  $('stickerUpload').addEventListener('change',e=>{loadImageFile(e.target.files[0],img=>{let r=Math.min(260/img.width,260/img.height,1),item={id:ids++,type:'image',img,x:W/2,y:H/2,width:img.width*r,height:img.height*r,scale:1,rotation:0};items.push(item);selected=item.id;syncUI();paint()});e.target.value=''});
- $('scaleRange').addEventListener('input',e=>{let item=selectedItem();if(item)item.scale=+e.target.value/100;$('scaleOut').textContent=e.target.value+'%';paint()});
- $('rotateRange').addEventListener('input',e=>{let item=selectedItem();if(item)item.rotation=+e.target.value*Math.PI/180;$('rotateOut').textContent=e.target.value+'°';paint()});
+ $('scaleRange').addEventListener('input',e=>{slideItem(item=>{item.scale=+e.target.value/100});$('scaleOut').textContent=e.target.value+'%'});
+ $('scaleRange').addEventListener('change',settleLive);
+ $('rotateRange').addEventListener('input',e=>{slideItem(item=>{item.rotation=+e.target.value*Math.PI/180});$('rotateOut').textContent=e.target.value+'°'});
+ $('rotateRange').addEventListener('change',settleLive);
  document.querySelectorAll('[data-depth]').forEach(btn=>btn.addEventListener('click',()=>{depth=btn.dataset.depth;document.querySelectorAll('[data-depth]').forEach(b=>b.classList.toggle('active',b===btn));paint()}));
  $('bringFront').addEventListener('click',()=>{let i=items.findIndex(it=>it.id===selected);if(i>=0)items.push(...items.splice(i,1));paint()});
- $('recessRange').addEventListener('input',e=>{recessStrength=+e.target.value/100;$('recessOut').textContent=e.target.value+'%';paint()});
+ $('recessRange').addEventListener('input',e=>{recessStrength=+e.target.value/100;$('recessOut').textContent=e.target.value+'%';relight()});
  $('pileRange').addEventListener('input',e=>{pileStrength=+e.target.value/100;$('pileOut').textContent=e.target.value+'%';paint()});
- $('glintRange').addEventListener('input',e=>{glintStrength=+e.target.value/100;$('glintOut').textContent=e.target.value+'%';paint()});
- document.querySelectorAll('[data-floor]').forEach(btn=>btn.addEventListener('click',()=>{floorTone=btn.dataset.floor;document.querySelectorAll('[data-floor]').forEach(b=>b.classList.toggle('active',b===btn));paint()}));
- $('powderRange').addEventListener('input',e=>{grainStrength=+e.target.value/100;$('powderOut').textContent=e.target.value+'%';paint()});
+ $('glintRange').addEventListener('input',e=>{glintStrength=+e.target.value/100;$('glintOut').textContent=e.target.value+'%';relight()});
+ document.querySelectorAll('[data-floor]').forEach(btn=>btn.addEventListener('click',()=>{floorTone=btn.dataset.floor;document.querySelectorAll('[data-floor]').forEach(b=>b.classList.toggle('active',b===btn));relight()}));
+ $('powderRange').addEventListener('input',e=>{grainStrength=+e.target.value/100;$('powderOut').textContent=e.target.value+'%';relight()});
  $('cropBtn').addEventListener('click',()=>{cropOn=!cropOn;$('cropBtn').classList.toggle('active',cropOn);$('cropBtn').setAttribute('aria-pressed',cropOn);if(!cropOn)showCrop(null);paint()});
  // A small crop is enlarged to about the full width, matching what the card shows.
  function exportCanvas(){
-  if(!cropOn||!cropRect)return canvas;
-  const k=exportScale(cropRect),[c,g]=makeCanvas(Math.round(cropRect.w*k),Math.round(cropRect.h*k));
-  g.imageSmoothingQuality='high';g.drawImage(canvas,cropRect.x,cropRect.y,cropRect.w,cropRect.h,0,0,c.width,c.height);
+  // Measured here rather than read from the card: the card shows no crop while writing.
+  const rect=cropOn?measureCrop():null;
+  if(!rect)return canvas;
+  const k=exportScale(rect),[c,g]=makeCanvas(Math.round(rect.w*k),Math.round(rect.h*k));
+  g.imageSmoothingQuality='high';g.drawImage(canvas,rect.x,rect.y,rect.w,rect.h,0,0,c.width,c.height);
   return c;
  }
  const downloadsReady=window.claude&&window.claude.use?window.claude.use('downloads'):Promise.resolve(null);
@@ -857,7 +1102,7 @@ textarea{background:#f8fafc;border:1px solid #e0e7ef;border-radius:12px;width:10
   paint(true);
   try{
    const blob=await new Promise((done,fail)=>exportCanvas().toBlob(b=>b?done(b):fail(new Error('empty image')),'image/png'));
-   paint();
+   paintHandles();
    const downloads=await downloadsReady;
    if(downloads){await downloads.save({filename,data:blob});tell('图片已保存');return}
    // Framed without that ability, a link would silently do nothing.
@@ -865,7 +1110,7 @@ textarea{background:#f8fafc;border:1px solid #e0e7ef;border-radius:12px;width:10
    const url=URL.createObjectURL(blob),link=document.createElement('a');
    link.href=url;link.download=filename;document.body.append(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),10000);
   }catch(err){
-   paint();
+   paintHandles();
    if(err&&err.code==='declined')return;
    tell(err&&err.code==='rate_limited'?'保存窗口还开着，处理完再试一次。':'图片保存失败，请换一张背景图片再试。');
   }
@@ -877,6 +1122,24 @@ textarea{background:#f8fafc;border:1px solid #e0e7ef;border-radius:12px;width:10
   disarmReset();items.length=0;selected=null;syncUI();paint();
  });
  document.addEventListener('keydown',e=>{if((e.key==='Delete'||e.key==='Backspace')&&!['TEXTAREA','INPUT','SELECT'].includes(document.activeElement.tagName)){e.preventDefault();del()}let it=selectedItem();if(!it||['TEXTAREA','INPUT','SELECT'].includes(document.activeElement.tagName))return;let step=e.shiftKey?12:2;if(e.key==='ArrowLeft')it.x-=step;else if(e.key==='ArrowRight')it.x+=step;else if(e.key==='ArrowUp')it.y-=step;else if(e.key==='ArrowDown')it.y+=step;else return;e.preventDefault();paint()});
+ // The page is exactly as tall as what can be seen, keyboard included. With the keyboard up
+ // there is room only for the canvas and the box being typed in, so the rest steps aside.
+ const viewport=window.visualViewport,root=document.documentElement;
+ let tallest=0,fittedWidth=0;
+ function fitViewport(){
+  if(viewport&&viewport.scale>1.01)return;
+  const h=viewport?viewport.height:innerHeight,w=viewport?viewport.width:innerWidth;
+  if(w!==fittedWidth){fittedWidth=w;tallest=0}
+  if(h>tallest)tallest=h;
+  root.style.setProperty('--app-h',h+'px');
+  root.classList.toggle('typing',document.activeElement.tagName==='TEXTAREA'&&h<tallest*.8);
+  if(matchMedia('(max-width:780px)').matches&&window.scrollY)window.scrollTo(0,0);
+ }
+ fitViewport();
+ window.addEventListener('resize',fitViewport);
+ if(viewport){viewport.addEventListener('resize',fitViewport);viewport.addEventListener('scroll',fitViewport)}
+ document.addEventListener('focusin',e=>{if(e.target.tagName==='TEXTAREA')setTimeout(()=>{fitViewport();if(root.classList.contains('typing'))e.target.scrollIntoView({block:'nearest'})},320)});
+ document.addEventListener('focusout',()=>setTimeout(fitViewport,60));
  syncUI();setTimeout(()=>{if(!snowPixels){createSnow();paint()}},80);
 })();
 </script>
