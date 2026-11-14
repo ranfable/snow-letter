@@ -211,12 +211,13 @@ header{flex:none;margin-bottom:8px;gap:6px}.brand{gap:7px}.brandmark{width:28px;
   </button>
 </div>
 <script>
-// Decided before the first paint: the opening plays on a first visit (or with ?intro in the address).
+// Decided before the first paint: the opening plays once each time the page is opened afresh
+// (a reload in the same tab skips it; ?intro in the address forces it).
 (function(){
   var splash=document.getElementById('intro'),seen=false,gone=false;
-  try{seen=localStorage.getItem('snowletter-intro2')==='1'}catch(e){}
+  try{seen=sessionStorage.getItem('snowletter-intro')==='1'}catch(e){}
   if(seen&&!/[?&]intro\b/.test(location.search)){splash.remove();return}
-  try{localStorage.setItem('snowletter-intro2','1')}catch(e){}
+  try{sessionStorage.setItem('snowletter-intro','1')}catch(e){}
   var img=document.getElementById('introBg'),
       cv=document.getElementById('introFx'),ctx=cv.getContext('2d'),
       fr=document.getElementById('introFrost'),fctx=fr.getContext('2d'),
