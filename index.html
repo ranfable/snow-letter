@@ -174,13 +174,14 @@ header{flex:none;margin-bottom:8px;gap:6px}.brand{gap:7px}.brandmark{width:28px;
 .typing .site{padding-top:6px}.typing header,.typing .tabs{display:none}.typing .tab-panel>.row:not(.row-input),.typing .note{display:none}
 }
 .drawer-grip{display:none}
-/* 竖屏手机：操作区是一个可以上下拖的抽屉（拖顶上的小横条），画布在抽屉上方剩下的空间里居中。打字时让位给键盘，沿用原来的布局。 */
+/* 竖屏手机：操作区是一个可以上下拖的抽屉（拖顶上的小横条或分页那一排都行），画布在抽屉上方剩下的空间里居中。打字时让位给键盘，沿用原来的布局。 */
 @media(max-width:780px) and (orientation:portrait){
 :root:not(.typing){--stage-max-h:var(--stage-fit,calc(var(--app-h,100vh) - 250px))}
 :root:not(.typing) .stage-column{flex:1;min-height:0;display:flex;flex-direction:column;justify-content:center}
 :root:not(.typing) .panel{flex:none;height:var(--drawer-h,calc(var(--app-h,100vh)*.36))}
-:root:not(.typing) .drawer-grip{display:block;flex:none;height:20px;position:relative;touch-action:none;cursor:ns-resize}
-.drawer-grip:after{content:"";position:absolute;left:50%;top:8px;width:38px;height:4px;margin-left:-19px;border-radius:4px;background:#c7d1de}
+:root:not(.typing) .drawer-grip{display:block;flex:none;height:26px;position:relative;touch-action:none;cursor:ns-resize}
+:root:not(.typing) .tabs{touch-action:none}
+.drawer-grip:after{content:"";position:absolute;left:50%;top:10px;width:40px;height:5px;margin-left:-20px;border-radius:5px;background:#b9c5d3}
 .drawer-grip.dragging:after{background:#8ea3bd}
 }
 @media(max-width:780px) and (orientation:landscape){
@@ -408,7 +409,7 @@ header{flex:none;margin-bottom:8px;gap:6px}.brand{gap:7px}.brandmark{width:28px;
   <div class="stage-info"><span id="stageHint" role="status">拖动文字或图案调整位置 · 点击选中后可旋转、缩放、删除</span><span id="sizeInfo"></span></div>
  </div>
  <aside class="panel">
-  <div class="drawer-grip" id="drawerGrip" role="separator" aria-orientation="horizontal" aria-label="上下拖动，调整操作区高度"></div>
+  <div class="drawer-grip" id="drawerGrip" role="separator" aria-orientation="horizontal" aria-label="上下拖动或点按，调整操作区高度"></div>
   <div class="tabs"><button class="tab active" data-tab="word">文字</button><button class="tab" data-tab="draw">手绘</button><button class="tab" data-tab="material">素材</button><button class="tab" data-tab="scene">雪景</button></div>
   <section class="tab-panel active" data-panel="word">
     <div class="section-head">把想说的话，留在雪里。</div>
@@ -1705,23 +1706,85 @@ header{flex:none;margin-bottom:8px;gap:6px}.brand{gap:7px}.brandmark{width:28px;
  // The drawer: on an upright phone the panel's height is the user's to set, by dragging the grip.
  // The canvas takes whatever is left above it and sits centered there.
  const drawerGrip=$('drawerGrip'),drawerPanel=drawerGrip.parentElement,stageColumn=document.querySelector('.stage-column'),drawerMode=matchMedia('(max-width:780px) and (orientation:portrait)');
- let drawerH=0;try{drawerH=+localStorage.getItem('snowletter-drawer')||0}catch(e){}
+ // A remembered height that small is a folded drawer from before; start at the usual height instead.
+ let drawerH=0;try{drawerH=+localStorage.getItem('snowletter-drawer')||0}catch(e){}if(drawerH<120)drawerH=0;
+ const drawerTabs=drawerPanel.querySelector('.tabs');
  function drawerLimits(){
-  const app=parseFloat(root.style.getPropertyValue('--app-h'))||innerHeight,low=drawerGrip.offsetHeight+drawerPanel.querySelector('.tabs').offsetHeight;
+  // Folded down, the drawer still shows its bar and the tab row (and the panel's top border).
+  const app=parseFloat(root.style.getPropertyValue('--app-h'))||innerHeight,low=drawerGrip.offsetHeight+drawerTabs.offsetHeight+drawerPanel.offsetHeight-drawerPanel.clientHeight;
   return {app,low,high:Math.max(low,app-190)};
  }
+ // Where the drawer comes to rest: folded, the usual height, and pulled up tall.
+ function drawerStops(){const {app,low,high}=drawerLimits();return [low,clamp(Math.round(app*.36),low,high),high]}
  function fitDrawer(){
   if(!drawerMode.matches||root.classList.contains('typing')){root.style.removeProperty('--stage-fit');return}
   const {app,low,high}=drawerLimits();
   root.style.setProperty('--drawer-h',clamp(drawerH||Math.round(app*.36),low,high)+'px');
   root.style.setProperty('--stage-fit',Math.max(60,stageColumn.clientHeight)+'px');
  }
- let drawerDrag=null;
- drawerGrip.addEventListener('pointerdown',e=>{if(e.button)return;drawerDrag={id:e.pointerId,y:e.clientY,h:drawerPanel.offsetHeight};try{drawerGrip.setPointerCapture(e.pointerId)}catch(_){}drawerGrip.classList.add('dragging');e.preventDefault()});
- drawerGrip.addEventListener('pointermove',e=>{if(!drawerDrag||e.pointerId!==drawerDrag.id)return;const {low,high}=drawerLimits();drawerH=clamp(drawerDrag.h+drawerDrag.y-e.clientY,low,high);fitDrawer()});
- const dropDrawer=e=>{if(!drawerDrag||e.pointerId!==drawerDrag.id)return;drawerDrag=null;drawerGrip.classList.remove('dragging');try{localStorage.setItem('snowletter-drawer',String(Math.round(drawerH)))}catch(_){}};
- drawerGrip.addEventListener('pointerup',dropDrawer);drawerGrip.addEventListener('pointercancel',dropDrawer);
- drawerMode.addEventListener('change',()=>fitDrawer());
+ // The bar and the whole tab row both pull the drawer. A short flick is enough: on release it
+ // glides to the next resting height that way, or else to the nearest one. A tap on the bar
+ // opens it a step; a tap on a tab while it is folded opens it to the usual height.
+ let drawerDrag=null,drawerAnim=0,drawerEatClick=0;
+ const calmMotion=matchMedia('(prefers-reduced-motion:reduce)');
+ function keepDrawer(){
+  // A folded drawer is not remembered, so nobody comes back to a page whose controls are hidden.
+  const low=drawerStops()[0];try{localStorage.setItem('snowletter-drawer',drawerH>low+4?String(Math.round(drawerH)):'0')}catch(_){}
+ }
+ function settleDrawer(to){
+  cancelAnimationFrame(drawerAnim);
+  const from=drawerPanel.offsetHeight;
+  if(calmMotion.matches||Math.abs(to-from)<2){drawerH=to;fitDrawer();keepDrawer();return}
+  const t0=performance.now(),step=now=>{const k=Math.min(1,(now-t0)/200);drawerH=from+(to-from)*(1-(1-k)**3);fitDrawer();if(k<1)drawerAnim=requestAnimationFrame(step);else keepDrawer()};
+  drawerAnim=requestAnimationFrame(step);
+ }
+ for(const el of [drawerGrip,drawerTabs])el.addEventListener('pointerdown',e=>{
+  if(e.button||!e.isPrimary||!drawerMode.matches||root.classList.contains('typing'))return;
+  cancelAnimationFrame(drawerAnim);
+  drawerDrag={id:e.pointerId,el,x:e.clientX,y:e.clientY,h:drawerPanel.offsetHeight,moved:false,trail:[[e.timeStamp,e.clientY]]};
+  if(el===drawerGrip){try{drawerGrip.setPointerCapture(e.pointerId)}catch(_){}drawerGrip.classList.add('dragging');e.preventDefault()}
+ });
+ addEventListener('pointermove',e=>{
+  const d=drawerDrag;if(!d||e.pointerId!==d.id)return;
+  const dy=e.clientY-d.y,dx=Math.abs(e.clientX-d.x);
+  if(!d.moved){
+   if(Math.abs(dy)<6&&dx<6)return;
+   if(dx>Math.abs(dy)){drawerDrag=null;drawerGrip.classList.remove('dragging');return}
+   d.moved=true;drawerGrip.classList.add('dragging');try{d.el.setPointerCapture(e.pointerId)}catch(_){}
+  }
+  const {low,high}=drawerLimits();drawerH=clamp(d.h-dy,low,high);fitDrawer();
+  d.trail.push([e.timeStamp,e.clientY]);if(d.trail.length>5)d.trail.shift();
+ });
+ const dropDrawer=e=>{
+  const d=drawerDrag;if(!d||e.pointerId!==d.id)return;
+  drawerDrag=null;drawerGrip.classList.remove('dragging');
+  if(!d.moved)return;
+  const stops=drawerStops(),now=drawerPanel.offsetHeight;
+  drawerEatClick=performance.now()+400;
+  // A finger that stopped before letting go has not flicked.
+  const [t0,y0]=d.trail[0],[t1,y1]=d.trail[d.trail.length-1],speed=t1>t0&&e.timeStamp-t1<90?(y1-y0)/(t1-t0):0;
+  let to=stops.reduce((a,b)=>Math.abs(b-now)<Math.abs(a-now)?b:a);
+  if(speed<-.3)to=stops.find(s=>s>now+8)||stops[2];
+  else if(speed>.3)to=[...stops].reverse().find(s=>s<now-8)||stops[0];
+  settleDrawer(to);
+ };
+ addEventListener('pointerup',dropDrawer);addEventListener('pointercancel',dropDrawer);
+ // A tap on the bar opens the drawer a step, and from the top it comes back to the usual height.
+ // Listening for the click also matters on Android: there a fingertip that lands on a thin strip
+ // is handed to the nearest thing that can be clicked, and without this the bar is not one, so
+ // a press on its upper edge went to the canvas and the drawer never moved.
+ drawerGrip.addEventListener('click',()=>{
+  if(performance.now()<drawerEatClick||!drawerMode.matches||root.classList.contains('typing'))return;
+  const stops=drawerStops(),now=drawerPanel.offsetHeight;settleDrawer(now<stops[1]-4?stops[1]:now<stops[2]-4?stops[2]:stops[1]);
+ });
+ // A tab row that was just dragged does not also switch tabs.
+ drawerTabs.addEventListener('click',e=>{if(performance.now()<drawerEatClick){e.stopImmediatePropagation();e.preventDefault()}},true);
+ drawerTabs.addEventListener('click',e=>{
+  if(!e.isTrusted||performance.now()<drawerEatClick||!drawerMode.matches||root.classList.contains('typing'))return;
+  const stops=drawerStops();if(drawerPanel.offsetHeight<stops[1]-4)settleDrawer(stops[1]);
+ });
+ // Older iPhones (before iOS 14) only know addListener here; calling the newer name would stop the whole script.
+ if(drawerMode.addEventListener)drawerMode.addEventListener('change',()=>fitDrawer());else if(drawerMode.addListener)drawerMode.addListener(()=>fitDrawer());
  function fitViewport(){
   if(viewport&&viewport.scale>1.01)return;
   const h=viewport?viewport.height:innerHeight,w=viewport?viewport.width:innerWidth;
