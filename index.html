@@ -1873,8 +1873,8 @@ header{flex:none;margin-bottom:8px;gap:6px}.brand{gap:7px}.brandmark{width:28px;
   root.style.setProperty('--drawer-h',clamp(drawerH||(drawFit?drawerForDrawing():drawerUsual()),low,high)+'px');
   root.style.setProperty('--stage-fit',Math.max(60,stageColumn.clientHeight)+'px');
  }
- // The bar and the whole tab row both pull the drawer. A short flick is enough: on release it
- // glides to the next resting height that way, or else to the nearest one. A tap on the bar
+ // The bar and the whole tab row both pull the drawer, and it stays wherever it is let go. A short
+ // flick is enough to glide it to the next resting height that way. A tap on the bar
  // opens it a step; a tap on a tab while it is folded opens it to the usual height.
  let drawerDrag=null,drawerAnim=0,drawerEatClick=0;
  const calmMotion=matchMedia('(prefers-reduced-motion:reduce)');
@@ -1917,9 +1917,11 @@ header{flex:none;margin-bottom:8px;gap:6px}.brand{gap:7px}.brandmark{width:28px;
   if(!d.moved)return;
   const stops=drawerStops(),now=drawerPanel.offsetHeight;
   drawerEatClick=performance.now()+400;
-  // A finger that stopped before letting go has not flicked.
+  // A finger that stopped before letting go has not flicked: the drawer stays where it was let go,
+  // unless that is within a finger's slip of a resting height, which it then settles on.
   const [t0,y0]=d.trail[0],[t1,y1]=d.trail[d.trail.length-1],speed=t1>t0&&e.timeStamp-t1<90?(y1-y0)/(t1-t0):0;
-  let to=stops.reduce((a,b)=>Math.abs(b-now)<Math.abs(a-now)?b:a);
+  const near=stops.reduce((a,b)=>Math.abs(b-now)<Math.abs(a-now)?b:a);
+  let to=Math.abs(near-now)<=16?near:now;
   if(speed<-.3)to=stops.find(s=>s>now+8)||stops[2];
   else if(speed>.3)to=[...stops].reverse().find(s=>s<now-8)||stops[0];
   settleDrawer(to);
