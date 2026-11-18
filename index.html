@@ -97,7 +97,9 @@ h1{font:500 26px/1.1 Georgia,"Songti SC",serif;letter-spacing:1.5px;margin:0;whi
 .workspace{display:grid;grid-template-columns:minmax(0,1fr) 372px;gap:22px;align-items:start}.stage-column{min-width:0;position:sticky;top:14px}
 .canvas-card{position:relative;width:min(100%,calc(var(--stage-max-h)*var(--ratio)));margin-inline:auto;border-radius:18px;overflow:hidden;background:#eff4f4;box-shadow:0 15px 45px #647b9522;border:1px solid #d1dce7}
 #snowCanvas{display:block;width:100%;height:auto;touch-action:none;cursor:grab}#snowCanvas:active{cursor:grabbing}#snowCanvas.drawing{cursor:crosshair}
-#sealLayer{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}.canvas-card.cropped #sealLayer{display:none}
+#sealLayer{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.zoom-layer{position:relative;transform-origin:0 0}.canvas-card.cropped .zoom-layer{position:absolute;top:0;left:0;right:0;bottom:0}
+.zoom-reset{position:absolute;left:10px;top:10px;z-index:4;padding:6px 13px;border-radius:999px;border:1px solid #d3dee9;background:#fffffff0;color:#3f5c7e;font-size:13px;line-height:1.2;box-shadow:0 2px 10px #4a648220;cursor:pointer}.zoom-reset[hidden]{display:none}.canvas-card.cropped #sealLayer{display:none}
 .stage-info{display:flex;justify-content:space-between;align-items:center;padding:12px 3px;gap:10px;font-size:12px;color:#8492a4;line-height:1.6;width:min(100%,calc(var(--stage-max-h)*var(--ratio)));margin-inline:auto}.stage-info span:last-child{white-space:nowrap}
 .panel{background:var(--panel);border-radius:20px;border:1px solid #e5eaf0;box-shadow:0 8px 25px #778ba514;overflow:hidden}
 .tabs{display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid var(--line);padding:6px 11px 0;gap:3px}.tab{background:transparent;color:#8b97a7;border:0;padding:13px 2px 14px;font-size:14px;position:relative;white-space:nowrap}.tab.active{color:#344d6b;font-weight:600}.tab.active:after{content:"";height:2px;background:#577ca8;position:absolute;bottom:0;left:22%;right:22%;border-radius:5px}
@@ -183,6 +185,13 @@ header{flex:none;margin-bottom:8px;gap:6px}.brand{gap:7px}.brandmark{width:28px;
 :root:not(.typing) .tabs{touch-action:none}
 .drawer-grip:after{content:"";position:absolute;left:50%;top:10px;width:40px;height:5px;margin-left:-20px;border-radius:5px;background:#b9c5d3}
 .drawer-grip.dragging:after{background:#8ea3bd}
+/* 手绘时抽屉只留一排：粗细在左，撤销和清除在右，画布就能大一些。 */
+:root:not(.typing) .tab-panel[data-panel="draw"].active{display:flex;flex-wrap:wrap;align-items:center;align-content:flex-start;column-gap:10px}
+:root:not(.typing) [data-panel="draw"] .row{margin-top:0}
+:root:not(.typing) [data-panel="draw"] .row-label,:root:not(.typing) [data-panel="draw"] .long{display:none}
+:root:not(.typing) [data-panel="draw"] .twobtn{flex:1;min-width:120px;gap:6px}
+:root:not(.typing) [data-panel="draw"] .twobtn .btn{padding:6px 8px}
+:root:not(.typing) [data-panel="draw"] .note{flex-basis:100%;margin-top:14px}
 }
 @media(max-width:780px) and (orientation:landscape){
 :root:not(.typing){--stage-max-h:calc(var(--app-h,100vh) - 64px)}
@@ -405,7 +414,7 @@ header{flex:none;margin-bottom:8px;gap:6px}.brand{gap:7px}.brandmark{width:28px;
 </header>
 <div class="workspace">
  <div class="stage-column">
-  <div class="canvas-card"><div id="snowFailure" hidden style="position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:#f1f6fa;text-align:center;padding:30px;color:#445d79;z-index:5">画面渲染失败，请尝试在 Safari 或 Chrome 中打开文件。</div><canvas id="snowCanvas" aria-label="雪地画布，支持拖动素材"></canvas><canvas id="sealLayer" aria-hidden="true"></canvas></div>
+  <div class="canvas-card"><div id="snowFailure" hidden style="position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:#f1f6fa;text-align:center;padding:30px;color:#445d79;z-index:5">画面渲染失败，请尝试在 Safari 或 Chrome 中打开文件。</div><div class="zoom-layer" id="zoomLayer"><canvas id="snowCanvas" aria-label="雪地画布，支持拖动素材"></canvas></div><canvas id="sealLayer" aria-hidden="true"></canvas><button class="zoom-reset" id="zoomReset" hidden>复原</button></div>
   <div class="stage-info"><span id="stageHint" role="status">拖动文字或图案调整位置 · 点击选中后可旋转、缩放、删除</span><span id="sizeInfo"></span></div>
  </div>
  <aside class="panel">
@@ -423,7 +432,7 @@ header{flex:none;margin-bottom:8px;gap:6px}.brand{gap:7px}.brandmark{width:28px;
   <section class="tab-panel" data-panel="draw">
     <div class="section-head">不用打字，直接写在雪上。</div>
     <div class="row inline"><div class="row-label">笔画</div><div class="chips"><button class="chip" data-weight="11">细</button><button class="chip active" data-weight="16">中</button><button class="chip" data-weight="23">粗</button></div></div>
-    <div class="row twobtn"><button class="btn" id="undoStroke">撤销一笔</button><button class="btn" id="clearDrawing">清除这幅</button></div>
+    <div class="row twobtn"><button class="btn" id="undoStroke">撤销<span class="long">一笔</span></button><button class="btn" id="clearDrawing">清除<span class="long">这幅</span></button></div>
     <div class="note">手指落在雪上就是一笔，松开可以接着写。</div>
   </section>
   <section class="tab-panel" data-panel="material">
@@ -470,6 +479,12 @@ header{flex:none;margin-bottom:8px;gap:6px}.brand{gap:7px}.brandmark{width:28px;
  // the snow is worked out pixel by pixel, so more pixels would slow every stroke on a phone.
  const RATIOS={'3:4':[780,1040],'9:16':[720,1280],'4:3':[960,720]};
  let ratio='3:4',W=RATIOS[ratio][0],H=RATIOS[ratio][1];
+ // U: how many pixels one pixel of the picture on screen spans. Every length and height in the
+ // snow is measured in it, so a saved picture can be sculpted again larger (U > 1) and come
+ // out the same, only sharper. It is 1 at all other times.
+ let U=1;
+ // Saved pictures come out with their short side this many pixels (小红书's 3:4 is 1080 × 1440).
+ const SHARP_SIDE=1080;
  const canvas=document.getElementById('snowCanvas'),ctx=canvas.getContext('2d');canvas.width=W;canvas.height=H;
  document.documentElement.style.setProperty('--ratio',W/H);
  const $=id=>document.getElementById(id);
@@ -498,11 +513,12 @@ header{flex:none;margin-bottom:8px;gap:6px}.brand{gap:7px}.brandmark{width:28px;
  // detail is spherical caps at three sizes rather than noise bumps. Baked once.
  function bakeGrain(){
   const field=new Float32Array(W*H),level=new Float32Array(W*H);
-  [[9,1],[4,.42],[2,.17]].forEach(([cell,weight],n)=>{
+  [[9,1],[4,.42],[2,.17]].forEach(([size,weight],n)=>{
+   const cell=size*U;
    level.fill(0);
    const rnd=randGen(61403+n);
    for(let gy=-1;gy*cell<H+cell;gy++)for(let gx=-1;gx*cell<W+cell;gx++){
-    const cx=(gx+rnd())*cell,cy=(gy+rnd())*cell,radius=cell*(.3+rnd()*.26),peak=.55+rnd()*.45,reach=Math.ceil(radius);
+    const cx=(gx+rnd())*cell,cy=(gy+rnd())*cell,radius=cell*(.3+rnd()*.26),peak=(.55+rnd()*.45)*U,reach=Math.ceil(radius);
     for(let oy=-reach;oy<=reach;oy++)for(let ox=-reach;ox<=reach;ox++){
      const xx=Math.round(cx)+ox,yy=Math.round(cy)+oy;
      if(xx<0||yy<0||xx>=W||yy>=H)continue;
@@ -526,7 +542,7 @@ header{flex:none;margin-bottom:8px;gap:6px}.brand{gap:7px}.brandmark{width:28px;
  const SCENES={blue:{snow:[233,238,244],lit:[249,251,253]},gold:{snow:[240,234,224],lit:[253,250,243]},dusk:{snow:[204,214,229],lit:[236,241,248]}};
  let crustBroad=null,crustFine=null,snowGrainShown=-1,snowFlat=SCENES.blue.snow;
  // Noise grids keep square cells whatever the picture's shape (they were sized for 960 × 688).
- const noiseGrid=(gw,gh,seed)=>valueField(Math.max(2,Math.round(W*gw/960)),Math.max(2,Math.round(H*gh/688)),seed);
+ const noiseGrid=(gw,gh,seed)=>valueField(Math.max(2,Math.round(W/U*gw/960)),Math.max(2,Math.round(H/U*gh/688)),seed);
  function bakeCrust(){
   if(!mediumNoise){mediumNoise=noiseGrid(280,190,1729);fineNoise=new Uint8Array(W*H);const rnd=randGen(42111);for(let i=0;i<fineNoise.length;i++)fineNoise[i]=rnd()*255}
   if(!clumpNoise){clumpNoise=noiseGrid(72,52,29380);crystalNoise=noiseGrid(180,129,72412);grainField=bakeGrain()}
@@ -553,7 +569,7 @@ header{flex:none;margin-bottom:8px;gap:6px}.brand{gap:7px}.brandmark{width:28px;
     }
    }
   };
-  drifts(16,300,135,10,5521);drifts(26,150,62,2.6,7713);
+  drifts(16,300*U,135*U,10*U,5521);drifts(26,150*U,62*U,2.6*U,7713);
   const ripples=(count,length,width,amp,seed)=>{
    const rnd=randGen(seed);
    for(let k=0;k<count;k++){
@@ -562,7 +578,7 @@ header{flex:none;margin-bottom:8px;gap:6px}.brand{gap:7px}.brandmark{width:28px;
     for(let y=y0;y<=y1;y++)for(let x=x0,j=y*W+x0;x<=x1;x++,j++){const dx=x-cx,dy=y-cy,u=(dx*co+dy*si)/rx,v=(-dx*si+dy*co)/ry,t=1-u*u-v*v;if(t>0)fine[j]+=a*t*t}
    }
   };
-  ripples(900,36,7,.5,3301);
+  ripples(900,36*U,7*U,.5*U,3301);
   for(let j=0;j<fine.length;j++)fine[j]+=grainField[j]*.55;
   const [lx,ly,lz]=[-.53,-.6,.6];
   const shade=(h,gain)=>{
@@ -676,7 +692,7 @@ header{flex:none;margin-bottom:8px;gap:6px}.brand{gap:7px}.brandmark{width:28px;
  }
  // The outline that fattens each glyph into a finger-wide trench shrinks with the letters,
  // so small, dense characters keep the gaps between their strokes.
- function shapeText(c,item,xx=0,yy=0){let ls=(item.text||' ').split('\n'),line=item.size*1.22,y0=-(ls.length-1)*line/2;c.textAlign='center';c.textBaseline='middle';c.font=`${fontWeight(item.font)} ${item.size}px ${fonts[item.font]||fonts.soft}`;c.lineJoin='round';c.lineCap='round';const sc=item.scale||1,shown=item.size*sc;c.lineWidth=clamp(shown*.027,1.9,3.4)/sc;for(let i=0;i<ls.length;i++){c.fillText(ls[i],xx,y0+i*line+yy);c.strokeText(ls[i],xx,y0+i*line+yy)}}
+ function shapeText(c,item,xx=0,yy=0){let ls=(item.text||' ').split('\n'),line=item.size*1.22,y0=-(ls.length-1)*line/2;c.textAlign='center';c.textBaseline='middle';c.font=`${fontWeight(item.font)} ${item.size}px ${fonts[item.font]||fonts.soft}`;c.lineJoin='round';c.lineCap='round';const sc=item.scale||1,shown=item.size*sc;c.lineWidth=clamp(shown*.027,1.9*U,3.4*U)/sc;for(let i=0;i<ls.length;i++){c.fillText(ls[i],xx,y0+i*line+yy);c.strokeText(ls[i],xx,y0+i*line+yy)}}
  // A sculpted height field, not layered dark text and white outlines.
  // Inspired by open-source snow-deformation techniques: one depression channel,
  // one displaced-snow rim, then normals calculated from the height gradients.
@@ -823,20 +839,27 @@ header{flex:none;margin-bottom:8px;gap:6px}.brand{gap:7px}.brandmark{width:28px;
   // returns everything to where it was, as long as nothing had to be pulled inside the frame.
   const [w,h]=size,k=Math.sqrt(w/W*h/H);
   for(const it of items){it.x=clamp(w/2+(it.x-W/2)*k,30,w-30);it.y=clamp(h/2+(it.y-H/2)*k,30,h-30);it.scale*=k}
-  ratio=name;W=w;H=h;
-  canvas.width=W;canvas.height=H;document.documentElement.style.setProperty('--ratio',W/H);
-  for(const c of [imprintCanvas,resultCanvas,worldCanvas,stillCanvas,frozenCanvas,glintLayer,surfaceCanvas]){c.width=W;c.height=H}
-  blurSmall.width=W>>2;blurSmall.height=H>>2;blurMid.width=W>>1;blurMid.height=H>>1;blurLayer.width=W;blurLayer.height=H;
-  FAR_W=W*3;FAR_H=Math.round(H*3.2);FAR_X=W*1.5;FAR_Y=Math.round(H*2.2);
-  for(const c of [farCanvas,farBaseCanvas]){c.width=FAR_W;c.height=FAR_H}
-  wholeCanvas.x1=W-1;wholeCanvas.y1=H-1;
-  maskAlpha=new Uint8Array(W*H);allocateFields();lastShaded=pixelBuffer;
+  ratio=name;sizeBuffers(w,h,true);document.documentElement.style.setProperty('--ratio',W/H);
   mediumNoise=fineNoise=clumpNoise=crystalNoise=grainField=crustBroad=crustFine=null;snowLayer=snowPixels=null;snowGrainShown=-1;
-  groundKey='';carved=false;X0=0;X1=-1;Y0=0;Y1=-1;
   rigViews();if(VIEWS[viewName])frameView(VIEWS[viewName]);
   if(cropOn)showCrop(null);
   $('sizeInfo').textContent=`${W} × ${H} px`;
   return true;
+ }
+ // Every buffer at a new size. The distant ground is only drawn in 斜拍 and 贴地, and is by far
+ // the largest, so a sharp save from above leaves it as it is.
+ function sizeBuffers(w,h,far){
+  W=w;H=h;
+  canvas.width=W;canvas.height=H;
+  for(const c of [imprintCanvas,resultCanvas,worldCanvas,stillCanvas,frozenCanvas,glintLayer,surfaceCanvas]){c.width=W;c.height=H}
+  blurSmall.width=W>>2;blurSmall.height=H>>2;blurMid.width=W>>1;blurMid.height=H>>1;blurLayer.width=W;blurLayer.height=H;
+  if(far){
+   FAR_W=W*3;FAR_H=Math.round(H*3.2);FAR_X=W*1.5;FAR_Y=Math.round(H*2.2);
+   for(const c of [farCanvas,farBaseCanvas]){c.width=FAR_W;c.height=FAR_H}
+  }
+  wholeCanvas.x1=W-1;wholeCanvas.y1=H-1;
+  maskAlpha=new Uint8Array(W*H);allocateFields();lastShaded=pixelBuffer;
+  groundKey='';carved=false;X0=0;X1=-1;Y0=0;Y1=-1;
  }
  function bakeSurface(v){
   const field=new Float32Array(W*H),im=surfaceCtx.createImageData(W,H),d=im.data;
@@ -846,14 +869,14 @@ header{flex:none;margin-bottom:8px;gap:6px}.brand{gap:7px}.brandmark{width:28px;
    const dist=row-v.horizonRow,s=dist*v.scaleK,ey=v.A*(1/v.d0-1/dist);
    for(let u=0;u<W;u++){
     const ex=(u-W/2)/s,i=Math.floor(mirror(v.pivotY-ex*v.sin+ey*v.cos,H))*W+Math.floor(mirror(v.pivotX+ex*v.cos+ey*v.sin,W));
-    field[row*W+u]=grainField[i]+(clumpNoise[i]-167)/87*.5+(crystalNoise[i]-167)/87*.35;
+    field[row*W+u]=grainField[i]/U+(clumpNoise[i]-167)/87*.5+(crystalNoise[i]-167)/87*.35;
    }
   }
   const lx=v.sun[0],ly=v.sun[1];
   for(let row=top+1;row<H-1;row++){
    const fade=Math.min(1,(row-v.horizonRow)*v.scaleK*1.6)*v.grain;
    for(let u=1;u<W-1;u++){
-    const i=row*W+u,p=i*4,lit=(field[i-1]-field[i+1])*.5*lx+(field[i-W]-field[i+W])*.5*ly;
+    const i=row*W+u,p=i*4,lit=((field[i-1]-field[i+1])*.5*lx+(field[i-W]-field[i+W])*.5*ly)*U;
     d[p]=d[p+1]=d[p+2]=128+lit*fade;d[p+3]=255;
    }
   }
@@ -883,7 +906,7 @@ header{flex:none;margin-bottom:8px;gap:6px}.brand{gap:7px}.brandmark{width:28px;
   const v=VIEWS[viewName];
   prepareGround();
   // The patch's footprint in the field, once rotated, with a little room for its soft edge.
-  const spanX=(W*Math.abs(v.cos)+H*Math.abs(v.sin))+12,spanY=(W*Math.abs(v.sin)+H*Math.abs(v.cos))+12;
+  const spanX=(W*Math.abs(v.cos)+H*Math.abs(v.sin))+12*U,spanY=(W*Math.abs(v.sin)+H*Math.abs(v.cos))+12*U;
   const midX=(W/2-v.pivotX)*v.cos-(H/2-v.pivotY)*v.sin+FAR_X,midY=(W/2-v.pivotX)*v.sin+(H/2-v.pivotY)*v.cos+FAR_Y;
   const fromX=Math.max(0,midX-spanX/2),fromY=Math.max(0,midY-spanY/2);
   farCtx.drawImage(farBaseCanvas,fromX,fromY,spanX,spanY,fromX,fromY,spanX,spanY);
@@ -951,7 +974,8 @@ header{flex:none;margin-bottom:8px;gap:6px}.brand{gap:7px}.brandmark{width:28px;
   // Against mid-toned snow light adds up the way light does; on bright snow that would only clip.
   if(v&&v.glow)c.globalCompositeOperation='lighter';
   // Fine specks, then a rare few large enough to show a little four-pointed star.
-  for(const [cell,salt,sharpness,starry] of [[9,20,260,false],[23,40,500,true]]){
+  for(const [size,salt,sharpness,starry] of [[9,20,260,false],[23,40,500,true]]){
+   const cell=size*U;
    for(let gy=Math.floor(minY/cell);gy*cell<maxY;gy++)for(let gx=Math.floor(minX/cell);gx*cell<maxX;gx++){
     const present=cellRand(gx,gy,salt+2);
     if(present>.9)continue;
@@ -961,7 +985,7 @@ header{flex:none;margin-bottom:8px;gap:6px}.brand{gap:7px}.brandmark{width:28px;
     if(inPatch&&core[i]>.2)continue;
     const loose=inPatch&&(bank[i]>.2||mounds[i]>.5);
     const spot=project(x,inPatch?y-height[i]*lift:y);
-    if(!spot||spot.x<-16||spot.x>W+16||spot.y<-16||spot.y>H+16)continue;
+    if(!spot||spot.x<-16*U||spot.x>W+16*U||spot.y<-16*U||spot.y>H+16*U)continue;
     if(present>(loose?.9:v?v.glintOdds:.5)*Math.min(1,spot.scale*1.4))continue;
     const angle=cellRand(gx,gy,salt+3)*Math.PI*2,tilt=.18+cellRand(gx,gy,salt+4)*.7;
     const nx=(inPatch?-(height[i+1]-height[i-1])*.5/4.6:0)+Math.cos(angle)*tilt,ny=(inPatch?-(height[i+W]-height[i-W])*.5/4.6:0)+Math.sin(angle)*tilt;
@@ -973,19 +997,19 @@ header{flex:none;margin-bottom:8px;gap:6px}.brand{gap:7px}.brandmark{width:28px;
     // White only: on a phone screen a coloured flash reads as a stray pixel, not a crystal.
     const pick=cellRand(gx,gy,salt+5),tint=GLINT_WHITES[Math.floor(pick*3)];
     const ring=v?Math.abs(spot.y-v.focusRow)/H*v.bokeh*(.7+.6*cellRand(gx,gy,salt+7)):0;
-    const kind=ring>1.6?'disc':starry?'star':'dot',radius=ring>1.6?ring:starry?(alpha>.5?6:4):2.4*(v?(v.glow?.8:1):.6);
+    const kind=ring>1.6?'disc':starry?'star':'dot',radius=(ring>1.6?ring:starry?(alpha>.5?6:4):2.4*(v?(v.glow?.8:1):.6))*U;
     c.globalAlpha=kind==='disc'?alpha*.72:alpha;c.drawImage(glintSprite(kind,tint),spot.x-radius,spot.y-radius,radius*2,radius*2);
    }
   }
   // Around the plane of focus, more crystals than can be told apart: a dust of single points.
   if(v&&v.dust){
    c.fillStyle='#fff';
-   for(let gy=0;gy*5<H;gy++)for(let gx=0;gx*5<W;gx++){
-    const x=gx*5+Math.floor(cellRand(gx,gy,71)*5),y=gy*5+Math.floor(cellRand(gx,gy,72)*5),focus=1-Math.abs(y-v.focusRow)/(H*.3);
+   for(let gy=0;gy*5*U<H;gy++)for(let gx=0;gx*5*U<W;gx++){
+    const x=Math.floor((gx*5+cellRand(gx,gy,71)*5)*U),y=Math.floor((gy*5+cellRand(gx,gy,72)*5)*U),focus=1-Math.abs(y-v.focusRow)/(H*.3);
     if(focus<=0||cellRand(gx,gy,70)>v.dust*focus)continue;
     const w=unproject(x,y),wx=Math.round(w.x),wy=Math.round(w.y);
     if(wx>=0&&wy>=0&&wx<W&&wy<H&&core[wy*W+wx]>.2)continue;
-    const b=cellRand(gx,gy,73);c.globalAlpha=Math.min(1,(.18+.82*b*b*b)*glintStrength);c.fillRect(x,y,1.3,1.3);
+    const b=cellRand(gx,gy,73);c.globalAlpha=Math.min(1,(.18+.82*b*b*b)*glintStrength);c.fillRect(x,y,1.3*U,1.3*U);
    }
   }
   c.restore();
@@ -998,7 +1022,9 @@ header{flex:none;margin-bottom:8px;gap:6px}.brand{gap:7px}.brandmark{width:28px;
  const gridFrom=(from,first,step)=>first+Math.max(0,Math.ceil((from-first)/step))*step;
  // The extent of the last carve, and whether it still stands: a change of light alone can reuse it.
  let X0=0,X1=-1,Y0=0,Y1=-1,carved=false,lastShaded=pixelBuffer;
- const carveDepth=()=>({light:12,normal:26,deep:43})[depth]||26;
+ const carveDepth=()=>(({light:12,normal:26,deep:43})[depth]||26)*U;
+ // Smoothing passes reach as far, in units, at any size.
+ const stepsFor=list=>U===1?list:list.map(n=>Math.max(1,Math.round(n*U)));
  // Share of the snow thrown out past an edge facing `away` from the sun (1 = straight away,
  // -1 = straight toward it): nearly all of it goes to the far side.
  const lopsided=away=>clamp(.12+1.5*(away+.35),.12,2.2);
@@ -1006,12 +1032,12 @@ header{flex:none;margin-bottom:8px;gap:6px}.brand{gap:7px}.brandmark{width:28px;
  // because everything here reaches a few pixels past the cell it is working on.
  function carve(box,keep){
   reliefMask(box,keep);
-  for(const [field,value] of [[core,0],[bank,0],[height,0],[mounds,0],[pile,0],[distance,32767],[inside,32767],[signed,44],[softDepth,0]])resetBox(field,value,box);
+  for(const [field,value] of [[core,0],[bank,0],[height,0],[mounds,0],[pile,0],[distance,32767],[inside,32767],[signed,44*U],[softDepth,0]])resetBox(field,value,box);
   // Everything below stays within reach of the letters, so a sparse canvas costs little.
   let minX=W,maxX=-1,minY=H,maxY=-1;
   for(let y=box.y0;y<=box.y1;y++)for(let x=box.x0,i=y*W+x;x<=box.x1;x++,i++)if(maskAlpha[i]>0){if(x<minX)minX=x;if(x>maxX)maxX=x;if(y<minY)minY=y;maxY=y}
   const margin=box.full?1:16;
-  X0=Math.max(box.x0+margin,minX-48);X1=Math.min(box.x1-margin,maxX+48);Y0=Math.max(box.y0+margin,minY-48);Y1=Math.min(box.y1-margin,maxY+48);
+  X0=Math.max(box.x0+margin,Math.floor(minX-48*U));X1=Math.min(box.x1-margin,Math.ceil(maxX+48*U));Y0=Math.max(box.y0+margin,Math.floor(minY-48*U));Y1=Math.min(box.y1-margin,Math.ceil(maxY+48*U));
   const D=carveDepth(),scale=pileStrength;
   // Fast 8-neighbor Euclidean-distance approximation, outward from the letters...
   for(let y=Y0;y<=Y1;y++)for(let x=X0;x<=X1;x++){const i=y*W+x;if(maskAlpha[i]>116)distance[i]=0}
@@ -1039,17 +1065,17 @@ header{flex:none;margin-bottom:8px;gap:6px}.brand{gap:7px}.brandmark{width:28px;
   // corner the way a fingertip would, and takes the stair steps out of the font outline.
   let band=0;
   for(let y=Y0;y<=Y1;y++)for(let x=X0;x<=X1;x++){
-   const i=y*W+x,sd=distance[i]>0?Math.min(44,distance[i]):-Math.min(44,inside[i]);
+   const i=y*W+x,sd=distance[i]>0?Math.min(44*U,distance[i]):-Math.min(44*U,inside[i]);
    signed[i]=sd;softDepth[i]=maskAlpha[i]/255;
-   if(sd>=-12&&sd<=12&&y>=4&&y<H-4&&x>=4&&x<W-4)signedBand[band++]=i;
+   if(sd>=-12*U&&sd<=12*U&&y>=4&&y<H-4&&x>=4&&x<W-4)signedBand[band++]=i;
   }
-  for(const step of [2,1,1])for(const axis of [step,W*step]){
+  for(const step of stepsFor([2,1,1]))for(const axis of [step,W*step]){
    for(let a=0;a<band;a++){const i=signedBand[a];signedSmooth[i]=(signed[i]*2+signed[i-axis]+signed[i+axis])/4}
    for(let a=0;a<band;a++){const i=signedBand[a];signed[i]=signedSmooth[i]}
   }
   // The trough's shape is the mask softened rather than the distance itself: distance
   // has a crease down each stroke's middle and fine steps that read as a hipped roof.
-  for(const step of [4,2,1,1])for(const axis of [step,W*step]){
+  for(const step of stepsFor([4,2,1,1]))for(const axis of [step,W*step]){
    for(let a=0;a<band;a++){const i=signedBand[a];softDepthNext[i]=(softDepth[i]*2+softDepth[i-axis]+softDepth[i+axis])/4}
    for(let a=0;a<band;a++){const i=signedBand[a];softDepth[i]=softDepthNext[i]}
   }
@@ -1061,7 +1087,7 @@ header{flex:none;margin-bottom:8px;gap:6px}.brand{gap:7px}.brandmark{width:28px;
    for(let y=Y0;y<=Y1;y++)for(let x=X0;x<=X1;x++){
     const i=y*W+x,from=nearest[i];if(from===i||from<0)continue;
     const fx=from%W,fy=(from-fx)/W,len=Math.hypot(fx-x,fy-y)||1,ux=(fx-x)/len,uy=(fy-y)/len;
-    const reach=Math.min(24,Math.ceil(inside[i])+2),share=maskAlpha[i]/255*spill/reach*lopsided(ux*.66+uy*.75);
+    const reach=Math.min(Math.round(24*U),Math.ceil(inside[i]+2*U)),share=maskAlpha[i]/255*spill/reach*lopsided(ux*.66+uy*.75);
     let landing=from;
     for(let k=0;k<reach;k++){
      const tx=Math.round(fx+ux*k),ty=Math.round(fy+uy*k);
@@ -1070,7 +1096,7 @@ header{flex:none;margin-bottom:8px;gap:6px}.brand{gap:7px}.brandmark{width:28px;
      pile[landing]+=share;
     }
    }
-   const pileReach=40;let count=0;
+   const pileReach=40*U;let count=0;
    for(let y=Y0;y<=Y1;y++)for(let x=X0;x<=X1;x++){const i=y*W+x,d=distance[i];if(d>0&&d<=pileReach)pileList[count++]=i}
    // Spreads the pile and melts the throw's radial streaks; the trench reflects, so
    // no snow leaks in. Widening taps reach far cheaply, and the finer rounds fill
@@ -1084,15 +1110,15 @@ header{flex:none;margin-bottom:8px;gap:6px}.brand{gap:7px}.brandmark{width:28px;
      for(let a=0;a<count;a++){const i=pileList[a];pile[i]=pileSmooth[i]}
     }
    };
-   for(const step of [6,4,2,1,1])smoothPile(step);
+   for(const step of stepsFor([6,4,2,1,1]))smoothPile(step);
    // Slump: wherever a slope is steeper than the snow's resting angle, the excess
    // slides to the lower neighbors.
    const steps=[-W,-W+1,1,W+1,W,W-1,-1,-W-1],lengths=[1,diag,1,diag,1,diag,1,diag],lower=new Int32Array(8);
    // A crowded canvas spends fewer passes so that dragging stays responsive.
-   const passes=clamp(Math.round(8e5/Math.max(1,count)),2,4);
+   const passes=Math.round(clamp(Math.round(8e5*U*U/Math.max(1,count)),2,4)*U);
    for(let pass=0;pass<passes;pass++)for(let a=0;a<count;a++){
     const i=pileList[pass%2?count-1-a:a],h=pile[i];
-    if(h<.05)continue;
+    if(h<.05*U)continue;
     const rest=.34+clumpNoise[i]/255*.4;
     let sum=0,n=0,top=0;
     for(let k=0;k<8;k++){
@@ -1109,9 +1135,9 @@ header{flex:none;margin-bottom:8px;gap:6px}.brand{gap:7px}.brandmark{width:28px;
    }
    smoothPile(1);
    // The bank's inner face slopes down into the trough instead of ending at a wall.
-   for(let y=Y0;y<=Y1;y++)for(let x=X0;x<=X1;x++){const i=y*W+x,from=nearest[i];if(from!==i&&from>=0)pile[i]=pile[from]*Math.exp(-inside[i]/3.5)}
+   for(let y=Y0;y<=Y1;y++)for(let x=X0;x<=X1;x++){const i=y*W+x,from=nearest[i];if(from!==i&&from>=0)pile[i]=pile[from]*Math.exp(-inside[i]/(3.5*U))}
    // Neighbors can look up very different edge pixels, which would streak the floor.
-   for(const step of [2,1])for(const axis of [step,W*step]){
+   for(const step of stepsFor([2,1]))for(const axis of [step,W*step]){
     for(let a=0;a<band;a++){const i=signedBand[a];if(distance[i]===0)pileSmooth[i]=(pile[i]*2+pile[i-axis]+pile[i+axis])/4}
     for(let a=0;a<band;a++){const i=signedBand[a];if(distance[i]===0)pile[i]=pileSmooth[i]}
    }
@@ -1130,24 +1156,26 @@ header{flex:none;margin-bottom:8px;gap:6px}.brand{gap:7px}.brandmark{width:28px;
    };
    // Soft swells where the pile is thick, low enough to read as drift rather than beads.
    // They may lap over the rim but stop short of the stroke's middle.
-   for(let y=gridFrom(Y0-4,12,8);y<Math.min(H-12,Y1+5);y+=8)for(let x=gridFrom(X0-4,12,8);x<Math.min(W-12,X1+5);x+=8){
+   // Both scatterings walk the picture's own grid (x, y in units) so a larger picture draws
+   // the same clumps in the same places.
+   for(let y=gridFrom(Y0/U-4,12,8);y<Math.min(H/U-12,Y1/U+5);y+=8)for(let x=gridFrom(X0/U-4,12,8);x<Math.min(W/U-12,X1/U+5);x+=8){
     if(cellRand(x,y,0)>.62)continue;
-    const px=x+Math.round((cellRand(x,y,1)-.5)*7),py=y+Math.round((cellRand(x,y,2)-.5)*7);
-    const i=py*W+px,local=pile[i];
-    if(signed[i]<.5||local<.35)continue;
-    splat(px,py,(3+Math.pow(cellRand(x,y,3),1.5)*6)*clamp(.7+local/12,.7,1.2),.72+cellRand(x,y,4)*.6,(.3+cellRand(x,y,5)*.7)*clamp(local,1.5,10)*heap,.5,-2.2);
+    const px=Math.round((x+(cellRand(x,y,1)-.5)*7)*U),py=Math.round((y+(cellRand(x,y,2)-.5)*7)*U);
+    const i=py*W+px,local=pile[i]/U;
+    if(signed[i]<.5*U||local<.35)continue;
+    splat(px,py,(3+Math.pow(cellRand(x,y,3),1.5)*6)*clamp(.7+local/12,.7,1.2)*U,.72+cellRand(x,y,4)*.6,(.3+cellRand(x,y,5)*.7)*clamp(local,1.5,10)*heap*U,.5,-2.2*U);
    }
    // Crumbs: most of the pushed snow is small and sits right at the lip, some tumbled
    // back over it, and a few lie loose on the trough floor.
-   for(let y=gridFrom(Y0,6,3);y<Math.min(H-6,Y1+1);y+=3)for(let x=gridFrom(X0,6,3);x<Math.min(W-6,X1+1);x+=3){
-    const sd=signed[y*W+x];
+   for(let y=gridFrom(Y0/U,6,3);y<Math.min(H/U-6,Y1/U+1);y+=3)for(let x=gridFrom(X0/U,6,3);x<Math.min(W/U-6,X1/U+1);x+=3){
+    const j=Math.round(y*U)*W+Math.round(x*U),sd=signed[j]/U;
     if(sd>15)continue;
-    const j=y*W+x,nx=signed[j+1]-signed[j-1],ny=signed[j+W]-signed[j-W],nl=Math.hypot(nx,ny)||1,side=lopsided((nx*.66+ny*.75)/nl);
+    const nx=signed[j+1]-signed[j-1],ny=signed[j+W]-signed[j-W],nl=Math.hypot(nx,ny)||1,side=lopsided((nx*.66+ny*.75)/nl);
     const loose=sd<-2.5,odds=(sd<0?.012+.26*ease((sd+2.5)/2.5):.53*Math.exp(-sd/3.4))*(loose?1:side);
     if(cellRand(x,y,6)>odds)continue;
-    const px=x+Math.round((cellRand(x,y,7)-.5)*6),py=y+Math.round((cellRand(x,y,8)-.5)*6);
-    const size=loose?.7+cellRand(x,y,9)*.6:.9+Math.pow(cellRand(x,y,9),1.8)*2.4;
-    splat(px,py,size,.7+cellRand(x,y,10)*.6,(loose?.9:1.8+cellRand(x,y,11)*2.6)*Math.min(1,.4+scale*.4),.8,-99);
+    const px=Math.round((x+(cellRand(x,y,7)-.5)*6)*U),py=Math.round((y+(cellRand(x,y,8)-.5)*6)*U);
+    const size=(loose?.7+cellRand(x,y,9)*.6:.9+Math.pow(cellRand(x,y,9),1.8)*2.4)*U;
+    splat(px,py,size,.7+cellRand(x,y,10)*.6,(loose?.9:1.8+cellRand(x,y,11)*2.6)*Math.min(1,.4+scale*.4)*U,.8,-99);
    }
   }
  }
@@ -1160,20 +1188,20 @@ header{flex:none;margin-bottom:8px;gap:6px}.brand{gap:7px}.brandmark{width:28px;
   copyBox(pixels,snowPixels,box);
   for(let y=Y0;y<=Y1;y++)for(let x=X0;x<=X1;x++){
    const i=y*W+x;
-   if(signed[i]>40)continue;
+   if(signed[i]>40*U)continue;
    const g=(mediumNoise[i]-167)/87,cl=(clumpNoise[i]-167)/87,sm=(crystalNoise[i]-167)/87;
    // The hand wavers and the rim crumbles, so the edge wanders from the font's outline.
-   const edge=signed[i]-.9+cl*1.7+sm*.8+(fineNoise[i]-128)/128*.55;
+   const edge=signed[i]/U-.9+cl*1.7+sm*.8+(fineNoise[i]-128)/128*.55;
    // Snow lying on top hides the trench under it.
-   const fluffyMounds=mounds[i],c=ease((1.5-edge)/3)*(1-Math.min(1,fluffyMounds/3));
+   const fluffyMounds=mounds[i],c=ease((1.5-edge)/3)*(1-Math.min(1,fluffyMounds/(3*U)));
    core[i]=c;
    // Random clump-scale breakup affects bank height, rather than needle-like rims.
    const f=clamp(.92+cl*.3+g*.14,.35,1.5);
-   const b=26*(1-Math.exp(-pile[i]/26))*f/7.1;
+   const b=26*U*(1-Math.exp(-pile[i]/(26*U)))*f/7.1;
    bank[i]=b;
    // Crystals go into the height itself, so the same sun lights them and they
    // show only where the snow was disturbed; the photo keeps its own grain elsewhere.
-   const loose=Math.min(1,b*.7+fluffyMounds/8);
+   const loose=Math.min(1,b/U*.7+fluffyMounds/(8*U));
    height[i]=b*7.1+fluffyMounds+grainField[i]*grainStrength*(c*1.5+loose*3.2);
   }
   // Only the loose snow is lit from the height field. The trough's shading below comes
@@ -1185,7 +1213,7 @@ header{flex:none;margin-bottom:8px;gap:6px}.brand{gap:7px}.brandmark{width:28px;
   const SOIL={light:[[176,150,128],.36],normal:[[156,124,101],.6],deep:[[134,101,80],.84]},[soil,show]=floorTone==='brown'?SOIL[depth]||SOIL.normal:[null,0];
   for(let y=Math.max(2,Y0);y<=Math.min(H-3,Y1);y++)for(let x=Math.max(2,X0);x<=Math.min(W-3,X1);x++){
    const i=y*W+x,p=i*4,c=core[i],b=bank[i],snow=mounds[i];
-   if(c<.005&&b<.006&&snow<.05)continue;
+   if(c<.005&&b<.006*U&&snow<.05*U)continue;
    // Packed down, the trough loses the crust's clumps.
    if(c>0){const k=c*.8;pixels[p]+=(snowFlat[0]-pixels[p])*k;pixels[p+1]+=(snowFlat[1]-pixels[p+1])*k;pixels[p+2]+=(snowFlat[2]-pixels[p+2])*k}
    const gx=(height[i+1]-height[i-1])*.5;
@@ -1198,28 +1226,28 @@ header{flex:none;margin-bottom:8px;gap:6px}.brand{gap:7px}.brandmark{width:28px;
    const g=(mediumNoise[i]-167)/87,cl=(clumpNoise[i]-167)/87,sm=(crystalNoise[i]-167)/87;
    // A rounded trough: darkest along its middle and on the side nearest the sun, fading
    // up to the snow on the far side. All of it follows distance, so nothing has an edge.
-   const towardSun=-((softDepth[i+1]-softDepth[i-1])*.5*sunX+(softDepth[i+W]-softDepth[i-W])*.5*sunY);
-   const sideShade=c*(towardSun>0?towardSun*2.7:towardSun*1.1)*(90+D*4.5)*recessStrength;
-   const floor=c*(.72+.28*ease((softDepth[i]-.45)*2.2))*(14+D*.75)*recessStrength;
+   const towardSun=-((softDepth[i+1]-softDepth[i-1])*.5*sunX+(softDepth[i+W]-softDepth[i-W])*.5*sunY)*U;
+   const sideShade=c*(towardSun>0?towardSun*2.7:towardSun*1.1)*(90+D/U*4.5)*recessStrength;
+   const floor=c*(.72+.28*ease((softDepth[i]-.45)*2.2))*(14+D/U*.75)*recessStrength;
    // Packed groove keeps broad mottling and dark crevices between its crystals;
    // the crystals' own highlights come from lighting the height field above.
-   const crystal=grainField[i],crevice=Math.max(0,-crystal);
+   const crystal=grainField[i]/U,crevice=Math.max(0,-crystal);
    const floorGrain=c*(g*9+sm*6+cl*5-crevice*14)*grainStrength;
    const flakeShine=c*Math.max(0,crystal-.35)*10;
    // Tiny pores inside the bank and white caps around its clumps.
-   const bankCap=(18*(1-Math.exp(-b*1.6))+Math.min(14,snow)*1.2)*(1+.3*Math.max(0,cl))*clamp(.55+lit/24,.15,1.1);
-   const bankGrain=(Math.min(1.5,b)*.55+Math.min(1,snow/12))*(sm*6+g*4-crevice*10)*grainStrength;
+   const bankCap=(18*(1-Math.exp(-b/U*1.6))+Math.min(14,snow/U)*1.2)*(1+.3*Math.max(0,cl))*clamp(.55+lit/24,.15,1.1);
+   const bankGrain=(Math.min(1.5,b/U)*.55+Math.min(1,snow/(12*U)))*(sm*6+g*4-crevice*10)*grainStrength;
    // A low sun gives heaps a soft shadow on the snow beside them.
    let cast=0;
    if(rig&&c<.6){
     let blocked=0;
     for(let k=3;k<=15;k+=4){
-     const sx=x+Math.round(castX*k),sy=y+Math.round(castY*k);
+     const sx=x+Math.round(castX*k*U),sy=y+Math.round(castY*k*U);
      if(sx<0||sy<0)break;
-     const over=height[sy*W+sx]-height[i]-k*castRise;
+     const over=height[sy*W+sx]-height[i]-k*U*castRise;
      if(over>blocked)blocked=over;
     }
-    cast=16*(1-Math.exp(-blocked/5));
+    cast=16*(1-Math.exp(-blocked/(5*U)));
    }
    const delta=directional-floor-sideShade+floorGrain+flakeShine+bankCap+bankGrain-cast;
    // Snow's blue is scattering: shade loses red first and turns bluer as it
@@ -1267,7 +1295,7 @@ header{flex:none;margin-bottom:8px;gap:6px}.brand{gap:7px}.brandmark{width:28px;
  function drawPictureItem(c,item){
   if(item.type!=='image'||!item.img)return;
   c.save();c.translate(item.x,item.y);c.rotate(item.rotation);c.scale(item.scale,item.scale);
-  c.shadowColor='rgba(36,56,76,.15)';c.shadowBlur=15;c.shadowOffsetY=5;
+  c.shadowColor='rgba(36,56,76,.15)';c.shadowBlur=15*U;c.shadowOffsetY=5*U;
   c.drawImage(item.img,-item.width/2,-item.height/2,item.width,item.height);c.restore();
  }
  // Where each handle sits on the screen for this item in this view. Null if out of sight.
@@ -1303,7 +1331,7 @@ header{flex:none;margin-bottom:8px;gap:6px}.brand{gap:7px}.brandmark{width:28px;
  function showCrop(rect){
   if(rect&&cropRect&&rect.x===cropRect.x&&rect.y===cropRect.y&&rect.w===cropRect.w&&rect.h===cropRect.h)return;
   cropRect=rect;
-  const card=canvas.parentElement;
+  const card=canvas.closest('.canvas-card');
   card.classList.toggle('cropped',!!rect);
   if(!rect){card.style.aspectRatio=card.style.width=card.style.marginInline=canvas.style.cssText='';$('sizeInfo').textContent=`${W} × ${H} px`;return}
   card.style.aspectRatio=`${rect.w} / ${rect.h}`;card.style.width=`min(100%, calc(var(--stage-max-h) * ${rect.w/rect.h}))`;card.style.marginInline='auto';
@@ -1336,7 +1364,7 @@ header{flex:none;margin-bottom:8px;gap:6px}.brand{gap:7px}.brandmark{width:28px;
   drawGlints(ctx);
   stillCtx.globalCompositeOperation='copy';stillCtx.drawImage(canvas,0,0);
   if(cropOn&&!pointerState&&!drawMode)showCrop(measureCrop());
-  if(!exporting)drawHandles();
+  if(!exporting){drawHandles();showSize()}
  }
  // While a finger is on something, the full sculpt is far too slow to follow it. `live` holds
  // what is being moved or written; the real snow is worked out again the moment it lets go.
@@ -1425,7 +1453,7 @@ header{flex:none;margin-bottom:8px;gap:6px}.brand{gap:7px}.brandmark{width:28px;
   if(w.x<4||w.y<4||w.x>W-4||w.y>H-4){live.stroke=null;if(!live.warned){live.warned=true;tell('这里已经超出雪地，往中间写')}return}
   if(!live.item){const it={id:ids++,type:'draw',x:w.x,y:w.y,scale:1,rotation:0,strokes:[],w:0,h:0};items.push(it);selected=it.id;live.item=it}
   const item=live.item,q=localPoint(w,item),lx=q.x/item.scale,ly=q.y/item.scale,note=(x,y)=>{const p=drawingToWorld(item,x,y),d=live.dirty;if(!d)live.dirty={x0:p.x,y0:p.y,x1:p.x,y1:p.y};else{if(p.x<d.x0)d.x0=p.x;if(p.x>d.x1)d.x1=p.x;if(p.y<d.y0)d.y0=p.y;if(p.y>d.y1)d.y1=p.y}};
-  if(!live.stroke){live.stroke={w:drawWeight/item.scale,pts:[[lx,ly,1]],time};item.strokes.push(live.stroke);note(lx,ly);return}
+  if(!live.stroke){live.stroke={w:drawWeight/item.scale,pts:[[lx,ly,1]],time};item.strokes.push(live.stroke);if(live.added)live.added.push(live.stroke);note(lx,ly);return}
   const pts=live.stroke.pts,a=pts[pts.length-1],follow=exact?1:.72,x=a[0]+(lx-a[0])*follow,y=a[1]+(ly-a[1])*follow;
   const step=Math.hypot(x-a[0],y-a[1])*item.scale;
   if(step<2)return;
@@ -1443,7 +1471,7 @@ header{flex:none;margin-bottom:8px;gap:6px}.brand{gap:7px}.brandmark{width:28px;
   if(settleTimer){clearTimeout(settleTimer);settleTimer=0}
   bakeGlints();
   const it=selectedItem();
-  live={kind:'stroke',item:it&&it.type==='draw'?it:null,stroke:null,dirty:null};
+  live={kind:'stroke',item:it&&it.type==='draw'?it:null,stroke:null,dirty:null,began:e.timeStamp,added:[]};
   strokePoint(getPoint(e),false,e.timeStamp);schedule();
  }
  function finishStroke(e){
@@ -1453,6 +1481,16 @@ header{flex:none;margin-bottom:8px;gap:6px}.brand{gap:7px}.brandmark{width:28px;
   live=null;syncUI();
   // Held back a moment so that writing a word doesn't stall between its strokes.
   settleTimer=setTimeout(()=>{settleTimer=0;paint()},520);
+ }
+ // A second finger coming down just after the first means a pinch, not a stroke: what the first
+ // finger has drawn so far is taken back.
+ function cancelStroke(){
+  const it=live.item;
+  if(it){
+   for(const st of live.added){const k=it.strokes.indexOf(st);if(k>=0)it.strokes.splice(k,1)}
+   if(!it.strokes.length){items.splice(items.indexOf(it),1);if(selected===it.id)selected=null}else fitDrawing(it);
+  }
+  live=null;syncUI();paint();
  }
  function undoStroke(){
   const item=selectedItem();if(!item||item.type!=='draw')return;
@@ -1494,27 +1532,72 @@ header{flex:none;margin-bottom:8px;gap:6px}.brand{gap:7px}.brandmark{width:28px;
  function fingerPair(){const [a,b]=[...fingers.values()];return {mid:{clientX:(a.x+b.x)/2,clientY:(a.y+b.y)/2},dist:Math.hypot(b.x-a.x,b.y-a.y),angle:Math.atan2(b.y-a.y,b.x-a.x)}}
  function startPinch(){
   const pair=fingerPair(),m=getPoint(pair.mid);
-  // Only what is under the fingers, or between them: a pinch on bare snow does nothing, even
-  // while something else is picked, so nothing grows or shrinks out of the blue.
+  // Only what is under the fingers, or between them: a pinch on bare snow moves the view
+  // instead, even while something else is picked, so nothing grows or shrinks out of the blue.
   const under=pt=>items.slice().reverse().find(i=>hit(i,pt)),[fa,fb]=[...fingers.values()].map(f=>getPoint({clientX:f.x,clientY:f.y}));
   const item=under(m)||under(fa)||under(fb);
-  if(!item||pair.dist<8)return;
+  if(pair.dist<8)return;
+  if(!item){startViewPinch();return}
   selected=item.id;hasInteracted=true;pointerState=null;
   pinch={id:item.id,dist:pair.dist,angle:pair.angle,mid:m,oldScale:item.scale,oldRot:item.rotation,oldX:item.x,oldY:item.y};
   if(!live)startLive(item);
   syncUI();schedule();
  }
+ // Looking closer: two fingers on bare snow (or anywhere while drawing) blow the picture up on
+ // screen and move it about, so small things can be written and drawn; one finger on bare
+ // snow moves it while it is blown up. Only the view changes: the snow, and the saved picture,
+ // stay whole. 复原 puts it back. The view is kept as fractions of the card, so it holds while
+ // the card changes size.
+ const zoomLayer=$('zoomLayer'),zoomReset=$('zoomReset'),stageCard=canvas.closest('.canvas-card');
+ let zoom={s:1,x:0,y:0},viewPinch=null,zoomAnim=0;
+ function showZoom(){
+  zoom.s=clamp(zoom.s,1,4);zoom.x=clamp(zoom.x,1-zoom.s,0);zoom.y=clamp(zoom.y,1-zoom.s,0);
+  zoomLayer.style.transform=zoom.s>1.001?`translate(${zoom.x*100}%,${zoom.y*100}%) scale(${zoom.s})`:'';
+  zoomReset.hidden=zoom.s<1.02;
+ }
+ function cardSpot(c){const r=stageCard.getBoundingClientRect();return {u:(c.clientX-r.left-stageCard.clientLeft)/stageCard.clientWidth,v:(c.clientY-r.top-stageCard.clientTop)/stageCard.clientHeight}}
+ function startViewPinch(){
+  const pair=fingerPair();if(pair.dist<8)return;
+  cancelAnimationFrame(zoomAnim);
+  const {u,v}=cardSpot(pair.mid);
+  viewPinch={dist:pair.dist,s:zoom.s,cu:(u-zoom.x)/zoom.s,cv:(v-zoom.y)/zoom.s};pointerState=null;
+ }
+ function moveViewPinch(){
+  const pair=fingerPair(),{u,v}=cardSpot(pair.mid);
+  zoom.s=clamp(viewPinch.s*pair.dist/viewPinch.dist,1,4);zoom.x=u-viewPinch.cu*zoom.s;zoom.y=v-viewPinch.cv*zoom.s;showZoom();
+ }
+ function resetZoom(now){
+  cancelAnimationFrame(zoomAnim);viewPinch=null;
+  const from={...zoom};
+  if(now||from.s<1.001||matchMedia('(prefers-reduced-motion:reduce)').matches){zoom={s:1,x:0,y:0};showZoom();return}
+  const t0=performance.now(),step=t=>{const k=Math.min(1,(t-t0)/220),q=1-(1-k)**3;zoom={s:from.s+(1-from.s)*q,x:from.x*(1-q),y:from.y*(1-q)};showZoom();if(k<1)zoomAnim=requestAnimationFrame(step)};
+  zoomAnim=requestAnimationFrame(step);
+ }
+ zoomReset.addEventListener('click',()=>resetZoom());
+ // A trackpad pinch on a computer arrives as a wheel with the control key held.
+ canvas.addEventListener('wheel',e=>{
+  if(!e.ctrlKey)return;e.preventDefault();cancelAnimationFrame(zoomAnim);
+  const {u,v}=cardSpot(e),cu=(u-zoom.x)/zoom.s,cv=(v-zoom.y)/zoom.s;
+  zoom.s=clamp(zoom.s*Math.exp(-e.deltaY*.01),1,4);zoom.x=u-cu*zoom.s;zoom.y=v-cv*zoom.s;showZoom();
+ },{passive:false});
  canvas.addEventListener('pointerdown',e=>{
-  if(e.pointerType==='touch'){fingers.set(e.pointerId,{x:e.clientX,y:e.clientY});if(fingers.size===2&&!drawMode){canvas.setPointerCapture(e.pointerId);startPinch();return}}
+  if(e.pointerType==='touch'){
+   fingers.set(e.pointerId,{x:e.clientX,y:e.clientY});
+   if(fingers.size===2&&!drawMode){canvas.setPointerCapture(e.pointerId);startPinch();return}
+   if(fingers.size===2&&live&&live.kind==='stroke'&&e.timeStamp-live.began<300){cancelStroke();canvas.setPointerCapture(e.pointerId);startViewPinch();return}
+  }
   if(!e.isPrimary)return;if(live&&live.kind==='move')settleLive();if(drawMode){beginStroke(e);return}const handlesShown=hasInteracted;hasInteracted=true;let p=getPoint(e);let item=items.find(i=>i.id===selected),h=item&&handlesShown?handleHit(item,getScreen(e)):null;
   if(h==='delete'){del();return}
   if(h){pointerState={mode:h,id:item.id,start:p,oldScale:item.scale,oldRot:item.rotation,dist:Math.hypot(p.x-item.x,p.y-item.y),cx:e.clientX,cy:e.clientY};canvas.setPointerCapture(e.pointerId);return}
   item=items.slice().reverse().find(i=>hit(i,p));selected=item?item.id:null;
-  if(item){pointerState={mode:'drag',id:item.id,start:p,oldX:item.x,oldY:item.y,cx:e.clientX,cy:e.clientY};canvas.setPointerCapture(e.pointerId)}else pointerState=null;
+  if(item){pointerState={mode:'drag',id:item.id,start:p,oldX:item.x,oldY:item.y,cx:e.clientX,cy:e.clientY};canvas.setPointerCapture(e.pointerId)}
+  else if(zoom.s>1.01){cancelAnimationFrame(zoomAnim);pointerState={mode:'pan',cx:e.clientX,cy:e.clientY,x:zoom.x,y:zoom.y};canvas.setPointerCapture(e.pointerId)}
+  else pointerState=null;
   syncUI();paintHandles();
  });
  canvas.addEventListener('pointermove',e=>{
   if(fingers.has(e.pointerId))fingers.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  if(viewPinch){if(fingers.size>=2)moveViewPinch();return}
   if(pinch){
    const item=items.find(i=>i.id===pinch.id);if(!item||fingers.size<2)return;
    const pair=fingerPair(),m=getPoint(pair.mid),staysOnPatch=!!VIEWS[viewName];
@@ -1527,6 +1610,7 @@ header{flex:none;margin-bottom:8px;gap:6px}.brand{gap:7px}.brandmark{width:28px;
    for(const sample of (e.getCoalescedEvents&&e.getCoalescedEvents().length?e.getCoalescedEvents():[e]))strokePoint(getPoint(sample),false,sample.timeStamp);
    schedule();return;
   }
+  if(pointerState&&pointerState.mode==='pan'){const s=pointerState;zoom.x=s.x+(e.clientX-s.cx)/stageCard.clientWidth;zoom.y=s.y+(e.clientY-s.cy)/stageCard.clientHeight;showZoom();return}
   if(!pointerState)return;const s=pointerState,item=items.find(i=>i.id===s.id);if(!item)return;
   // A tap's small tremble isn't a drag, and picking the item up isn't free.
   if(!live){if(Math.hypot(e.clientX-s.cx,e.clientY-s.cy)<3)return;startLive(item)}
@@ -1539,6 +1623,8 @@ header{flex:none;margin-bottom:8px;gap:6px}.brand{gap:7px}.brandmark{width:28px;
  });
  function stopDrag(e){
   fingers.delete(e.pointerId);
+  // Like a pinch, moving the view lasts until every finger is off.
+  if(viewPinch){if(!fingers.size){viewPinch=null;pointerState=null}return}
   // A pinch lasts until every finger is off, so lifting one first doesn't turn it into a drag.
   if(pinch){if(!fingers.size){pinch=null;pointerState=null;if(live){live=null;paint()}syncUI()}return}
   if(!e.isPrimary)return;
@@ -1579,7 +1665,7 @@ header{flex:none;margin-bottom:8px;gap:6px}.brand{gap:7px}.brandmark{width:28px;
  function del(){if(selected){let ix=items.findIndex(i=>i.id===selected);if(ix>=0)items.splice(ix,1);selected=null;live=null;syncUI();paint()}}
  $('clearDrawing').addEventListener('click',del);$('undoStroke').addEventListener('click',undoStroke);
  document.querySelectorAll('[data-weight]').forEach(btn=>btn.addEventListener('click',()=>{drawWeight=+btn.dataset.weight;choose('[data-weight]',b=>b===btn)}));
- document.querySelectorAll('[data-view]').forEach(btn=>btn.addEventListener('click',()=>{viewName=btn.dataset.view;if(VIEWS[viewName])frameView(VIEWS[viewName]);choose('[data-view]',b=>b===btn);drawSealLayer();paint()}));
+ document.querySelectorAll('[data-view]').forEach(btn=>btn.addEventListener('click',()=>{resetZoom(true);viewName=btn.dataset.view;if(VIEWS[viewName])frameView(VIEWS[viewName]);choose('[data-view]',b=>b===btn);drawSealLayer();paint()}));
  // Each button shows the stamp itself, so an icon can never drift from what gets pressed.
  document.querySelectorAll('.material canvas').forEach(icon=>{const c=icon.getContext('2d');c.translate(30,30);c.scale(.46,.46);c.strokeStyle='#697d95';c.lineCap='round';c.lineJoin='round';c.lineWidth=8;c.fillStyle='#697d95';drawDoodle(c,icon.parentElement.dataset.stamp)});
  document.querySelectorAll('[data-stamp]').forEach(btn=>btn.addEventListener('click',()=>{let n=items.filter(i=>i.type==='stamp').length,item={id:ids++,type:'stamp',kind:btn.dataset.stamp,x:W/2+(n%4-1.5)*72,y:H/2+(n%3-1)*70,size:+btn.dataset.size||105,scale:1,rotation:btn.dataset.size?(n%5-2)*.07:0};items.push(item);selected=item.id;hasInteracted=true;syncUI();paint()}));
@@ -1594,7 +1680,7 @@ header{flex:none;margin-bottom:8px;gap:6px}.brand{gap:7px}.brandmark{width:28px;
  // Kinds of snow, each a fixed mix of what used to be four sliders.
  const TEXTURES={fresh:{grain:.65,pile:1.55,recess:1.4,glint:1},powder:{grain:.95,pile:2.2,recess:1.2,glint:1.1},wet:{grain:.32,pile:.85,recess:1.75,glint:.4},ice:{grain:.55,pile:1.25,recess:1.5,glint:1.9}};
  document.querySelectorAll('[data-texture]').forEach(btn=>btn.addEventListener('click',()=>{const t=TEXTURES[btn.dataset.texture];grainStrength=t.grain;pileStrength=t.pile;recessStrength=t.recess;glintStrength=t.glint;choose('[data-texture]',b=>b===btn);paint()}));
- document.querySelectorAll('[data-ratio]').forEach(btn=>btn.addEventListener('click',()=>{if(!resizeSnow(btn.dataset.ratio))return;choose('[data-ratio]',b=>b===btn);live=null;drawSealLayer();fitViewport();paint()}));
+ document.querySelectorAll('[data-ratio]').forEach(btn=>btn.addEventListener('click',()=>{if(!resizeSnow(btn.dataset.ratio))return;resetZoom(true);choose('[data-ratio]',b=>b===btn);live=null;drawSealLayer();fitViewport();paint()}));
  // The 落款: a small vermilion seal reading 雪笺, with the date and the maker beside it. It sits on
  // its own layer over the snow: always shown on screen, never part of the saved picture.
  const sealLayer=$('sealLayer'),sealCtx=sealLayer.getContext('2d');
@@ -1618,7 +1704,7 @@ header{flex:none;margin-bottom:8px;gap:6px}.brand{gap:7px}.brandmark{width:28px;
  }
  function drawSealLayer(){sealLayer.width=W;sealLayer.height=H;drawSeal(sealCtx,W,H,viewName==='low')}
  drawSealLayer();
- $('cropBtn').addEventListener('click',()=>{cropOn=!cropOn;$('cropBtn').classList.toggle('active',cropOn);$('cropBtn').setAttribute('aria-pressed',cropOn);if(!cropOn)showCrop(null);paint()});
+ $('cropBtn').addEventListener('click',()=>{resetZoom(true);cropOn=!cropOn;$('cropBtn').classList.toggle('active',cropOn);$('cropBtn').setAttribute('aria-pressed',cropOn);if(!cropOn)showCrop(null);paint()});
  // A small crop is enlarged to about the full width, matching what the card shows.
  function exportCanvas(){
   // Measured here rather than read from the card: the card shows no crop while writing.
@@ -1628,6 +1714,50 @@ header{flex:none;margin-bottom:8px;gap:6px}.brand{gap:7px}.brandmark{width:28px;
   else{const k=exportScale(rect);[c,g]=makeCanvas(Math.round(rect.w*k),Math.round(rect.h*k));g.imageSmoothingQuality='high';g.drawImage(canvas,rect.x,rect.y,rect.w,rect.h,0,0,c.width,c.height)}
   // The 落款 is deliberately left off the saved picture: it only shows on screen.
   return c;
+ }
+ // A saved picture is sculpted again with its short side SHARP_SIDE pixels, every length and
+ // height in the snow scaled by U to match, and the screen then goes back to its own size; all
+ // of it within one task, so nothing in between is ever shown. 斜拍 and 贴地 also need a
+ // distant ground three times the picture's size, and phones cap a canvas near 16 million
+ // pixels, so those views come out a little smaller when they must. A crop is enlarged to the
+ // same short side, up to the 2.5 times it always allowed.
+ function sharpFactor(){
+  let k=SHARP_SIDE/Math.min(W,H);
+  if(VIEWS[viewName])k=Math.min(k,Math.floor(Math.sqrt(16e6/(9.6*W*H))*1000)/1000);
+  return k;
+ }
+ const cropScale=(rect,k)=>clamp(SHARP_SIDE/Math.min(rect.w,rect.h),k,2.5);
+ // The size the save button will give, shown beside the picture on a computer.
+ function showSize(){
+  const k=sharpFactor(),r=cropOn&&cropRect,out=r?cropScale(r,k):k;
+  $('sizeInfo').textContent=r?`${Math.round(r.w*out)} × ${Math.round(r.h*out)} px`:`${Math.round(W*k)} × ${Math.round(H*k)} px`;
+ }
+ function exportSharp(){
+  const k=sharpFactor();
+  if(k<1.05||live){paint(true);return exportCanvas()}
+  const w0=W,h0=H,v=VIEWS[viewName],rig=v?{...v}:null,rect=cropOn?measureCrop():null,cropOut=rect?cropScale(rect,k):0;
+  const placed=items.map(it=>[it,it.x,it.y,it.scale]),baked=[mediumNoise,fineNoise,clumpNoise,crystalNoise,grainField,crustBroad,crustFine,snowLayer,snowPixels,snowGrainShown];
+  let shot=null;
+  try{
+   U=k;sizeBuffers(Math.round(w0*k),Math.round(h0*k),!!v);
+   mediumNoise=fineNoise=clumpNoise=crystalNoise=grainField=crustBroad=crustFine=null;snowLayer=snowPixels=null;snowGrainShown=-1;
+   for(const it of items){it.x*=k;it.y*=k;it.scale*=k}
+   if(v){rigViews();aimRig(v,rig.scaleK*rig.d0,rig.pivotX*k,rig.pivotY*k)}
+   renderScene(true);
+   const [c,g]=rect?makeCanvas(Math.round(rect.w*cropOut),Math.round(rect.h*cropOut)):makeCanvas(W,H);
+   g.imageSmoothingQuality='high';
+   if(rect)g.drawImage(canvas,rect.x*k,rect.y*k,rect.w*k,rect.h*k,0,0,c.width,c.height);else g.drawImage(canvas,0,0);
+   // A phone that runs out of canvas memory hands back a blank picture rather than an error.
+   if(g.getImageData(c.width>>1,c.height>>1,1,1).data[3]>0)shot=c;
+  }catch(err){console.error('Sharp save failed:',err)}
+  finally{
+   U=1;for(const [it,x,y,scale] of placed){it.x=x;it.y=y;it.scale=scale}
+   sizeBuffers(w0,h0,!!v);
+   [mediumNoise,fineNoise,clumpNoise,crystalNoise,grainField,crustBroad,crustFine,snowLayer,snowPixels,snowGrainShown]=baked;
+   if(v){rigViews();Object.assign(v,rig)}
+   renderScene(true);
+  }
+  return shot||exportCanvas();
  }
  const downloadsReady=window.claude&&window.claude.use?window.claude.use('downloads'):Promise.resolve(null);
  const filename='雪笺-snow-letter.png';
@@ -1676,9 +1806,11 @@ header{flex:none;margin-bottom:8px;gap:6px}.brand{gap:7px}.brandmark{width:28px;
  const asDataUrl=blob=>new Promise((done,fail)=>{const r=new FileReader();r.onload=()=>done(r.result);r.onerror=()=>fail(r.error);r.readAsDataURL(blob)});
  $('saveBtn').addEventListener('click',async()=>{
   if(document.fonts&&document.fonts.load&&handText().trim())await Promise.race([document.fonts.load('100px "Xiaolai"',handText()).catch(()=>{}),new Promise(r=>setTimeout(r,4000))]);
-  paint(true);
+  // Sculpting the larger picture takes a moment on a phone: say so, and let that show first.
+  tell('正在生成高清图片…');await new Promise(r=>requestAnimationFrame(()=>setTimeout(r,30)));
   try{
-   const blob=await new Promise((done,fail)=>exportCanvas().toBlob(b=>b?done(b):fail(new Error('empty image')),'image/png'));
+   const shot=exportSharp();
+   const blob=await new Promise((done,fail)=>shot.toBlob(b=>b?done(b):fail(new Error('empty image')),'image/png'));
    paintHandles();
    const downloads=await downloadsReady;
    // A data URL rather than a blob URL: WeChat only offers to save pictures it can read itself.
@@ -1706,20 +1838,39 @@ header{flex:none;margin-bottom:8px;gap:6px}.brand{gap:7px}.brandmark{width:28px;
  // The drawer: on an upright phone the panel's height is the user's to set, by dragging the grip.
  // The canvas takes whatever is left above it and sits centered there.
  const drawerGrip=$('drawerGrip'),drawerPanel=drawerGrip.parentElement,stageColumn=document.querySelector('.stage-column'),drawerMode=matchMedia('(max-width:780px) and (orientation:portrait)');
- // A remembered height that small is a folded drawer from before; start at the usual height instead.
- let drawerH=0;try{drawerH=+localStorage.getItem('snowletter-drawer')||0}catch(e){}if(drawerH<120)drawerH=0;
+ // drawerH 0 means the usual height, worked out afresh for each screen. Heights remembered
+ // under the old key were mostly the old usual height (a third of the screen), so they are
+ // left behind; a height that small is a folded drawer, and starts at the usual height instead.
+ let drawerH=0;try{drawerH=+localStorage.getItem('snowletter-drawer2')||0}catch(e){}if(drawerH<120)drawerH=0;
  const drawerTabs=drawerPanel.querySelector('.tabs');
  function drawerLimits(){
   // Folded down, the drawer still shows its bar and the tab row (and the panel's top border).
   const app=parseFloat(root.style.getPropertyValue('--app-h'))||innerHeight,low=drawerGrip.offsetHeight+drawerTabs.offsetHeight+drawerPanel.offsetHeight-drawerPanel.clientHeight;
   return {app,low,high:Math.max(low,app-190)};
  }
- // Where the drawer comes to rest: folded, the usual height, and pulled up tall.
- function drawerStops(){const {app,low,high}=drawerLimits();return [low,clamp(Math.round(app*.36),low,high),high]}
+ // The usual height gives the picture as much room as it can use. On a tall screen the picture
+ // spans the full width and the drawer takes what is left below it; on a short one the drawer
+ // keeps just enough to show the text box, and the picture has the rest. Never more than a
+ // third of the screen, as it used to be.
+ const DRAWER_MIN=168;
+ function drawerUsual(){
+  const {app,low,high}=drawerLimits(),wide=stageColumn.clientWidth*H/W,below=app-stageColumn.getBoundingClientRect().top-wide-8;
+  return clamp(Math.round(Math.max(below,DRAWER_MIN)),low,Math.min(high,Math.round(app*.36)));
+ }
+ // In 手绘 the drawer shrinks to the stroke sizes and the undo buttons, since drawing wants room.
+ let drawFit=null;
+ function drawerForDrawing(){
+  const panel=drawerPanel.querySelector('.tab-panel[data-panel="draw"]'),rows=[...panel.querySelectorAll('.row')];
+  if(!panel.classList.contains('active')||!rows.length)return drawerUsual();
+  const {low,high}=drawerLimits(),pr=panel.getBoundingClientRect(),bottom=Math.max(...rows.map(r=>r.getBoundingClientRect().bottom));
+  return clamp(Math.round(bottom-drawerPanel.getBoundingClientRect().top+panel.scrollTop+parseFloat(getComputedStyle(panel).paddingBottom)),low,high);
+ }
+ // Where the drawer comes to rest: folded, the usual height (or the drawing height), and pulled up tall.
+ function drawerStops(){const {low,high}=drawerLimits();return [low,drawFit?drawerForDrawing():drawerUsual(),high]}
  function fitDrawer(){
   if(!drawerMode.matches||root.classList.contains('typing')){root.style.removeProperty('--stage-fit');return}
-  const {app,low,high}=drawerLimits();
-  root.style.setProperty('--drawer-h',clamp(drawerH||Math.round(app*.36),low,high)+'px');
+  const {low,high}=drawerLimits();
+  root.style.setProperty('--drawer-h',clamp(drawerH||(drawFit?drawerForDrawing():drawerUsual()),low,high)+'px');
   root.style.setProperty('--stage-fit',Math.max(60,stageColumn.clientHeight)+'px');
  }
  // The bar and the whole tab row both pull the drawer. A short flick is enough: on release it
@@ -1728,8 +1879,13 @@ header{flex:none;margin-bottom:8px;gap:6px}.brand{gap:7px}.brandmark{width:28px;
  let drawerDrag=null,drawerAnim=0,drawerEatClick=0;
  const calmMotion=matchMedia('(prefers-reduced-motion:reduce)');
  function keepDrawer(){
-  // A folded drawer is not remembered, so nobody comes back to a page whose controls are hidden.
-  const low=drawerStops()[0];try{localStorage.setItem('snowletter-drawer',drawerH>low+4?String(Math.round(drawerH)):'0')}catch(_){}
+  // Coming to rest at the usual height leaves it free to follow the screen. A folded drawer is
+  // not remembered, so nobody comes back to a page whose controls are hidden, and neither is
+  // the drawing height, which belongs to 手绘 alone.
+  if(drawFit)return;
+  const [low,usual]=drawerStops();
+  if(Math.abs(drawerH-usual)<3){drawerH=0;fitDrawer()}
+  try{localStorage.setItem('snowletter-drawer2',drawerH>low+4?String(Math.round(drawerH)):'0')}catch(_){}
  }
  function settleDrawer(to){
   cancelAnimationFrame(drawerAnim);
@@ -1780,7 +1936,11 @@ header{flex:none;margin-bottom:8px;gap:6px}.brand{gap:7px}.brandmark{width:28px;
  // A tab row that was just dragged does not also switch tabs.
  drawerTabs.addEventListener('click',e=>{if(performance.now()<drawerEatClick){e.stopImmediatePropagation();e.preventDefault()}},true);
  drawerTabs.addEventListener('click',e=>{
-  if(!e.isTrusted||performance.now()<drawerEatClick||!drawerMode.matches||root.classList.contains('typing'))return;
+  if(performance.now()<drawerEatClick||!drawerMode.matches||root.classList.contains('typing'))return;
+  // Into 手绘: the drawer fits the drawing controls. Out again: back to the height it had before.
+  if(drawMode&&!drawFit){drawFit={back:drawerH};settleDrawer(drawerForDrawing());return}
+  if(!drawMode&&drawFit){const back=drawFit.back,{low,high}=drawerLimits();drawFit=null;settleDrawer(clamp(back||drawerUsual(),low,high));return}
+  if(!e.isTrusted)return;
   const stops=drawerStops();if(drawerPanel.offsetHeight<stops[1]-4)settleDrawer(stops[1]);
  });
  // Older iPhones (before iOS 14) only know addListener here; calling the newer name would stop the whole script.
